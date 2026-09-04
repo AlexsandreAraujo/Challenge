@@ -1,5 +1,9 @@
+"""Configuração do app pessoas."""
+
 from django.apps import AppConfig
 
 
 class PessoasConfig(AppConfig):
-    name = 'pessoas'
+    """AppConfig do app pessoas."""
+
+    name = "pessoas"

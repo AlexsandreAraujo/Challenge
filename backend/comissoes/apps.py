@@ -1,5 +1,9 @@
+"""Configuração do app comissoes."""
+
 from django.apps import AppConfig
 
 
 class ComissoesConfig(AppConfig):
-    name = 'comissoes'
+    """AppConfig do app comissoes."""
+
+    name = "comissoes"
