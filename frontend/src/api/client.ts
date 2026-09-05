@@ -57,3 +57,5 @@ export const getComissoes = (dataInicio: string, dataFim: string) =>
   request<ComissaoVendedor[]>(
     `/comissoes/?data_inicio=${dataInicio}&data_fim=${dataFim}`
   );
+
+export const getVenda = (id: number) => request<Venda>(`/vendas/${id}/`);
