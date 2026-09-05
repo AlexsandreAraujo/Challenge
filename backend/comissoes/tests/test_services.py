@@ -1,6 +1,6 @@
 """Testes do serviço de cálculo de comissão."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from django.utils.timezone import make_aware
@@ -10,6 +10,7 @@ from comissoes.models import FaixaComissaoDia
 from comissoes.services import (
     calcular_comissao_item,
     calcular_comissao_venda,
+    calcular_comissoes_por_vendedor,
     calcular_percentual_efetivo,
 )
 from pessoas.models import Cliente, Vendedor
@@ -116,3 +117,77 @@ def test_comissao_da_venda_soma_todos_os_itens(
     # item 2: subtotal 15.00, comissao 4% = 0.60
     # total = 2.60
     assert resultado == Decimal("2.60")
+
+
+def test_calcula_comissoes_por_vendedor_agrupando_e_somando(
+    cliente: Cliente, vendedor: Vendedor, produto: Produto
+) -> None:
+    """Soma a comissão de todas as vendas de cada vendedor no período."""
+    outro_vendedor = Vendedor.objects.create(
+        nome="Bruno Lima", email="bruno@example.com", telefone="11977777777"
+    )
+
+    venda1 = Venda.objects.create(
+        numero_nota_fiscal="NF010",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    ItemVenda.objects.create(
+        venda=venda1, produto=produto, quantidade=1
+    )  # comissao 1.00
+
+    venda2 = Venda.objects.create(
+        numero_nota_fiscal="NF011",
+        data_hora=make_aware(datetime(2026, 9, 10)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    ItemVenda.objects.create(
+        venda=venda2, produto=produto, quantidade=1
+    )  # comissao 1.00
+
+    venda3 = Venda.objects.create(
+        numero_nota_fiscal="NF012",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=outro_vendedor,
+    )
+    ItemVenda.objects.create(
+        venda=venda3, produto=produto, quantidade=2
+    )  # comissao 2.00
+
+    resultado = calcular_comissoes_por_vendedor(date(2026, 9, 1), date(2026, 9, 30))
+
+    assert len(resultado) == 2
+    # ordenado por nome: "Bruno Lima" vem antes de "João Silva"
+    assert resultado[0].vendedor == outro_vendedor
+    assert resultado[0].total == Decimal("2.00")
+    assert resultado[1].vendedor == vendedor
+    assert resultado[1].total == Decimal("2.00")  # 1.00 + 1.00 das duas vendas
+
+
+def test_exclui_vendas_fora_do_periodo(
+    cliente: Cliente, vendedor: Vendedor, produto: Produto
+) -> None:
+    """Vendas fora do período informado não entram no total."""
+    venda_dentro = Venda.objects.create(
+        numero_nota_fiscal="NF020",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    ItemVenda.objects.create(venda=venda_dentro, produto=produto, quantidade=1)
+
+    venda_fora = Venda.objects.create(
+        numero_nota_fiscal="NF021",
+        data_hora=make_aware(datetime(2026, 10, 1)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    ItemVenda.objects.create(venda=venda_fora, produto=produto, quantidade=5)
+
+    resultado = calcular_comissoes_por_vendedor(date(2026, 9, 1), date(2026, 9, 30))
+
+    assert len(resultado) == 1
+    assert resultado[0].total == Decimal("1.00")
