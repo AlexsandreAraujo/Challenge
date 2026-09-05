@@ -5,9 +5,12 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from catalogo.views import ProdutoViewSet
+from pessoas.views import ClienteViewSet, VendedorViewSet
 
 router = DefaultRouter()
 router.register("produtos", ProdutoViewSet)
+router.register("clientes", ClienteViewSet)
+router.register("vendedores", VendedorViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
