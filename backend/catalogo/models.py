@@ -17,3 +17,7 @@ class Produto(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)],
     )
+
+    def __str__(self) -> str:
+        """Retorna código e descrição como representação textual."""
+        return f"{self.codigo} - {self.descricao}"
