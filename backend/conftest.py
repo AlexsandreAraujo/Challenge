@@ -1,11 +1,15 @@
 """Fixtures compartilhadas entre os testes de todos os apps."""
 
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 import pytest
 
 from catalogo.models import Produto
 from pessoas.models import Cliente, Vendedor
+
+if TYPE_CHECKING:
+    from rest_framework.test import APIClient
 
 
 @pytest.fixture
@@ -33,3 +37,11 @@ def produto(db) -> Produto:
         valor_unitario=Decimal("10.00"),
         percentual_comissao=Decimal("10.00"),
     )
+
+
+@pytest.fixture
+def client() -> "APIClient":
+    """Cliente de teste da API REST (sobrescreve o client padrão do Django)."""
+    from rest_framework.test import APIClient
+
+    return APIClient()
