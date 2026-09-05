@@ -13,7 +13,7 @@ class Produto(models.Model):
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
     percentual_comissao = models.DecimalField(
-        max_digits=5,
+        max_digits=4,
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)],
     )
