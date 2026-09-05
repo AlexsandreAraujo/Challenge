@@ -1,6 +1,10 @@
 """Serializers da API do app vendas."""
 
+from decimal import Decimal
+
 from rest_framework import serializers
+
+from comissoes.services import calcular_comissao_item, obter_percentual_efetivo_item
 
 from .models import ItemVenda, Venda
 
@@ -8,11 +12,42 @@ from .models import ItemVenda, Venda
 class ItemVendaSerializer(serializers.ModelSerializer):
     """Serializa um item de venda (produto + quantidade) dentro de uma Venda."""
 
+    produto_codigo = serializers.CharField(source="produto.codigo", read_only=True)
+    produto_descricao = serializers.CharField(
+        source="produto.descricao", read_only=True
+    )
+    valor_unitario = serializers.DecimalField(
+        source="produto.valor_unitario",
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+    )
+    percentual_comissao = serializers.SerializerMethodField()
+    comissao = serializers.SerializerMethodField()
+
     class Meta:
         """Define o model e os campos do item de venda."""
 
         model = ItemVenda
-        fields = ["id", "produto", "quantidade", "subtotal"]
+        fields = [
+            "id",
+            "produto",
+            "produto_codigo",
+            "produto_descricao",
+            "quantidade",
+            "valor_unitario",
+            "subtotal",
+            "percentual_comissao",
+            "comissao",
+        ]
+
+    def get_percentual_comissao(self, obj: ItemVenda) -> Decimal:
+        """Retorna o percentual de comissão efetivo (já aplicando a faixa do dia)."""
+        return obter_percentual_efetivo_item(obj)
+
+    def get_comissao(self, obj: ItemVenda) -> Decimal:
+        """Retorna o valor de comissão calculado para este item."""
+        return calcular_comissao_item(obj)
 
 
 class VendaSerializer(serializers.ModelSerializer):

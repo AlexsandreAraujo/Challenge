@@ -27,11 +27,16 @@ def calcular_percentual_efetivo(
     return max(faixa.comissao_minima, min(percentual_produto, faixa.comissao_maxima))
 
 
-def calcular_comissao_item(item: ItemVenda) -> Decimal:
-    """Calcula a comissão de um item, aplicando a faixa do dia da venda."""
+def obter_percentual_efetivo_item(item: ItemVenda) -> Decimal:
+    """Determina o percentual de comissão efetivo do item, aplicando a faixa do dia."""
     dia_semana = item.venda.data_hora.weekday()
     faixa = FaixaComissaoDia.objects.filter(dia_semana=dia_semana).first()
-    percentual = calcular_percentual_efetivo(item.produto.percentual_comissao, faixa)
+    return calcular_percentual_efetivo(item.produto.percentual_comissao, faixa)
+
+
+def calcular_comissao_item(item: ItemVenda) -> Decimal:
+    """Calcula a comissão de um item, aplicando a faixa do dia da venda."""
+    percentual = obter_percentual_efetivo_item(item)
     return item.subtotal * percentual / Decimal("100")
 
 
