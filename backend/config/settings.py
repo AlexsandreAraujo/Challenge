@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "pessoas",
     "vendas",
     "comissoes",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
