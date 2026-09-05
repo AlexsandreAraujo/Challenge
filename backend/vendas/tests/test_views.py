@@ -1,7 +1,9 @@
 """Testes da API REST do app vendas."""
 
+from datetime import datetime
 from decimal import Decimal
 
+from django.utils.timezone import make_aware
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -98,3 +100,68 @@ def test_exclui_venda_remove_itens_em_cascata(
     assert resposta.status_code == status.HTTP_204_NO_CONTENT
     assert not Venda.objects.filter(id=venda.id).exists()
     assert not ItemVenda.objects.filter(id=item.id).exists()
+
+
+def test_lista_vendas_paginada(
+    client: APIClient, cliente: Cliente, vendedor: Vendedor
+) -> None:
+    """GET /api/vendas/ retorna resposta paginada."""
+    for i in range(3):
+        Venda.objects.create(
+            numero_nota_fiscal=f"NFP{i}",
+            data_hora=make_aware(datetime(2026, 9, 9)),
+            cliente=cliente,
+            vendedor=vendedor,
+        )
+
+    resposta = client.get("/api/vendas/")
+
+    assert resposta.status_code == status.HTTP_200_OK
+    assert "results" in resposta.data
+    assert resposta.data["count"] == 3
+
+
+def test_busca_vendas_por_numero_nota_fiscal(
+    client: APIClient, cliente: Cliente, vendedor: Vendedor
+) -> None:
+    """GET /api/vendas/?search=... filtra por nota fiscal/cliente/vendedor."""
+    Venda.objects.create(
+        numero_nota_fiscal="NF500",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    Venda.objects.create(
+        numero_nota_fiscal="NF600",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+
+    resposta = client.get("/api/vendas/", {"search": "NF500"})
+
+    assert resposta.data["count"] == 1
+    assert resposta.data["results"][0]["numero_nota_fiscal"] == "NF500"
+
+
+def test_ordena_vendas_por_data_hora(
+    client: APIClient, cliente: Cliente, vendedor: Vendedor
+) -> None:
+    """GET /api/vendas/?ordering=data_hora ordena do mais antigo pro mais novo."""
+    Venda.objects.create(
+        numero_nota_fiscal="NF700",
+        data_hora=make_aware(datetime(2026, 9, 10)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    Venda.objects.create(
+        numero_nota_fiscal="NF701",
+        data_hora=make_aware(datetime(2026, 9, 8)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+
+    resposta = client.get("/api/vendas/", {"ordering": "data_hora"})
+
+    numeros = [v["numero_nota_fiscal"] for v in resposta.data["results"]]
+    assert numeros == ["NF701", "NF700"]
