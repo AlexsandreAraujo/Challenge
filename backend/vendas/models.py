@@ -12,7 +12,11 @@ from pessoas.models import Cliente, Vendedor
 class Venda(models.Model):
     """Venda de um ou mais produtos para um cliente, feita por um vendedor."""
 
-    numero_nota_fiscal = models.CharField(max_length=20, unique=True)
+    @property
+    def numero_nota_fiscal(self) -> str:
+        """Número da nota fiscal, derivado sequencialmente do ID da venda."""
+        return f"{self.id:08d}"
+
     data_hora = models.DateTimeField()
     cliente = models.ForeignKey(
         Cliente, on_delete=models.PROTECT, related_name="vendas"

@@ -1,5 +1,7 @@
 """Views da API do app vendas."""
 
+import re
+
 from django.db.models import Q
 from django_filters import rest_framework as django_filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,12 +31,14 @@ class VendaFilterSet(django_filters.FilterSet):
         fields = ["cliente", "vendedor"]
 
     def filtrar_busca(self, queryset, name, value):
-        """Filtra vendas cuja nota fiscal, cliente ou vendedor contenham o termo."""
-        return queryset.filter(
-            Q(numero_nota_fiscal__icontains=value)
-            | Q(cliente__nome__icontains=value)
-            | Q(vendedor__nome__icontains=value)
+        """Filtra vendas por ID (nota fiscal), cliente ou vendedor."""
+        condicoes = Q(cliente__nome__icontains=value) | Q(
+            vendedor__nome__icontains=value
         )
+        digitos = re.sub(r"\D", "", value)
+        if digitos:
+            condicoes |= Q(pk=int(digitos))
+        return queryset.filter(condicoes)
 
 
 class VendaViewSet(viewsets.ModelViewSet):
@@ -47,5 +51,5 @@ class VendaViewSet(viewsets.ModelViewSet):
     pagination_class = VendaPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = VendaFilterSet
-    ordering_fields = ["data_hora", "numero_nota_fiscal"]
+    ordering_fields = ["data_hora", "id"]
     ordering = ["-data_hora"]

@@ -17,7 +17,6 @@ def test_cria_venda_com_itens(
 ) -> None:
     """POST /api/vendas/ cria a venda e seus itens numa única chamada."""
     dados = {
-        "numero_nota_fiscal": "NF100",
         "data_hora": "2026-09-09T10:00:00Z",
         "cliente": cliente.id,
         "vendedor": vendedor.id,
@@ -27,7 +26,7 @@ def test_cria_venda_com_itens(
     resposta = client.post("/api/vendas/", dados, format="json")
 
     assert resposta.status_code == status.HTTP_201_CREATED
-    venda = Venda.objects.get(numero_nota_fiscal="NF100")
+    venda = Venda.objects.get(id=resposta.data["id"])
     assert venda.itens.count() == 1
     assert resposta.data["valor_total"] == Decimal("20.00")
 
@@ -37,7 +36,6 @@ def test_cria_venda_com_quantidade_invalida_retorna_400(
 ) -> None:
     """POST /api/vendas/ com quantidade menor que 1 retorna 400."""
     dados = {
-        "numero_nota_fiscal": "NF101",
         "data_hora": "2026-09-09T10:00:00Z",
         "cliente": cliente.id,
         "vendedor": vendedor.id,
@@ -54,8 +52,7 @@ def test_atualiza_venda_substitui_itens(
 ) -> None:
     """PUT /api/vendas/<id>/ substitui os itens da venda pelos enviados."""
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF102",
-        data_hora="2026-09-09T10:00:00Z",
+        data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
     )
@@ -68,7 +65,6 @@ def test_atualiza_venda_substitui_itens(
         percentual_comissao=Decimal("2.00"),
     )
     dados = {
-        "numero_nota_fiscal": "NF102",
         "data_hora": "2026-09-09T10:00:00Z",
         "cliente": cliente.id,
         "vendedor": vendedor.id,
@@ -88,8 +84,7 @@ def test_exclui_venda_remove_itens_em_cascata(
 ) -> None:
     """DELETE /api/vendas/<id>/ remove a venda e seus itens (CASCADE)."""
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF103",
-        data_hora="2026-09-09T10:00:00Z",
+        data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
     )
@@ -106,9 +101,8 @@ def test_lista_vendas_paginada(
     client: APIClient, cliente: Cliente, vendedor: Vendedor
 ) -> None:
     """GET /api/vendas/ retorna resposta paginada."""
-    for i in range(3):
+    for _ in range(3):
         Venda.objects.create(
-            numero_nota_fiscal=f"NFP{i}",
             data_hora=make_aware(datetime(2026, 9, 9)),
             cliente=cliente,
             vendedor=vendedor,
@@ -124,38 +118,34 @@ def test_lista_vendas_paginada(
 def test_busca_vendas_por_numero_nota_fiscal(
     client: APIClient, cliente: Cliente, vendedor: Vendedor
 ) -> None:
-    """GET /api/vendas/?search=... filtra por nota fiscal/cliente/vendedor."""
-    Venda.objects.create(
-        numero_nota_fiscal="NF500",
+    """GET /api/vendas/?search=... filtra pelo número da nota fiscal (ID)."""
+    venda = Venda.objects.create(
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
     )
     Venda.objects.create(
-        numero_nota_fiscal="NF600",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
     )
 
-    resposta = client.get("/api/vendas/", {"search": "NF500"})
+    resposta = client.get("/api/vendas/", {"search": venda.numero_nota_fiscal})
 
     assert resposta.data["count"] == 1
-    assert resposta.data["results"][0]["numero_nota_fiscal"] == "NF500"
+    assert resposta.data["results"][0]["id"] == venda.id
 
 
 def test_ordena_vendas_por_data_hora(
     client: APIClient, cliente: Cliente, vendedor: Vendedor
 ) -> None:
     """GET /api/vendas/?ordering=data_hora ordena do mais antigo pro mais novo."""
-    Venda.objects.create(
-        numero_nota_fiscal="NF700",
+    venda_mais_nova = Venda.objects.create(
         data_hora=make_aware(datetime(2026, 9, 10)),
         cliente=cliente,
         vendedor=vendedor,
     )
-    Venda.objects.create(
-        numero_nota_fiscal="NF701",
+    venda_mais_antiga = Venda.objects.create(
         data_hora=make_aware(datetime(2026, 9, 8)),
         cliente=cliente,
         vendedor=vendedor,
@@ -163,16 +153,15 @@ def test_ordena_vendas_por_data_hora(
 
     resposta = client.get("/api/vendas/", {"ordering": "data_hora"})
 
-    numeros = [v["numero_nota_fiscal"] for v in resposta.data["results"]]
-    assert numeros == ["NF701", "NF700"]
+    ids = [v["id"] for v in resposta.data["results"]]
+    assert ids == [venda_mais_antiga.id, venda_mais_nova.id]
 
 
 def test_busca_nao_confunde_termos_entre_campos_diferentes(
     client: APIClient, cliente: Cliente, vendedor: Vendedor
 ) -> None:
     """Busca por frase não deve casar palavras espalhadas em campos diferentes."""
-    Venda.objects.create(
-        numero_nota_fiscal="NF800",
+    venda = Venda.objects.create(
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
@@ -181,7 +170,6 @@ def test_busca_nao_confunde_termos_entre_campos_diferentes(
         nome="Cliente 2", email="cliente2@example.com", telefone="11944444444"
     )
     Venda.objects.create(
-        numero_nota_fiscal="NF801",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=outro_cliente,
         vendedor=vendedor,
@@ -190,4 +178,4 @@ def test_busca_nao_confunde_termos_entre_campos_diferentes(
     resposta = client.get("/api/vendas/", {"search": cliente.nome})
 
     assert resposta.data["count"] == 1
-    assert resposta.data["results"][0]["numero_nota_fiscal"] == "NF800"
+    assert resposta.data["results"][0]["id"] == venda.id
