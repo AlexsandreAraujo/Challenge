@@ -200,7 +200,7 @@ export function VendaFormPage() {
                         formatarMoeda(Number(produto.valor_unitario) * item.quantidade)}
                     </TableCell>
                     <TableCell>
-                      <IconButton size="small" onClick={() => removerItem(index)}>
+                      <IconButton size="small" color="error" onClick={() => removerItem(index)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>

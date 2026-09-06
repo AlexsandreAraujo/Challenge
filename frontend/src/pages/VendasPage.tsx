@@ -143,8 +143,8 @@ export function VendasPage() {
                     <IconButton component={Link} to={`/vendas/${venda.id}/editar`} size="small">
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setVendaParaExcluir(venda.id)}>
-                      <DeleteIcon fontSize="small" color="error" />
+                    <IconButton size="small" color="error" onClick={() => setVendaParaExcluir(venda.id)}>
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
