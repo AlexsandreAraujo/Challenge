@@ -152,6 +152,7 @@ export function VendaFormPage() {
           <Box sx={{ display: "flex", gap: 2, my: 2 }}>
             <Autocomplete
               options={produtos}
+              slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
               getOptionLabel={(p) => `${p.codigo} - ${p.descricao}`}
               value={produtoSelecionado}
               onChange={(_, valor) => setProdutoSelecionado(valor)}
@@ -223,6 +224,7 @@ export function VendaFormPage() {
           />
           <Autocomplete
             options={vendedores}
+            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
             getOptionLabel={(v) => v.nome}
             value={vendedor}
             onChange={(_, valor) => setVendedor(valor)}
@@ -233,6 +235,7 @@ export function VendaFormPage() {
           />
           <Autocomplete
             options={clientes}
+            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
             getOptionLabel={(c) => c.nome}
             value={cliente}
             onChange={(_, valor) => setCliente(valor)}
@@ -242,11 +245,14 @@ export function VendaFormPage() {
             )}
           />
 
-          <Typography variant="subtitle1" sx={{ mt: 2 }}>
-            Valor total da venda: {formatarMoeda(valorTotal)}
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+            <Typography variant="subtitle1">Valor total da venda:</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {formatarMoeda(valorTotal)}
+            </Typography>
+          </Box>
 
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Button onClick={() => navigate("/vendas")}>Cancelar</Button>
             <Button variant="contained" onClick={finalizar}>
               Finalizar
