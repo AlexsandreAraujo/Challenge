@@ -55,7 +55,6 @@ def test_item_sem_faixa_usa_percentual_do_produto(
 ) -> None:
     """Sem FaixaComissaoDia para o dia, a comissão usa o percentual do produto."""
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF001",
         data_hora=make_aware(datetime(2026, 9, 9)),  # quarta-feira, sem faixa
         cliente=cliente,
         vendedor=vendedor,
@@ -78,7 +77,6 @@ def test_item_com_faixa_aplica_o_limite_maximo(
         comissao_maxima=Decimal("5.00"),
     )
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF002",
         data_hora=make_aware(datetime(2026, 9, 7)),  # segunda-feira
         cliente=cliente,
         vendedor=vendedor,
@@ -103,7 +101,6 @@ def test_comissao_da_venda_soma_todos_os_itens(
         percentual_comissao=Decimal("4.00"),
     )
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF003",
         data_hora=make_aware(datetime(2026, 9, 9)),  # quarta-feira, sem faixa
         cliente=cliente,
         vendedor=vendedor,
@@ -128,7 +125,6 @@ def test_calcula_comissoes_por_vendedor_agrupando_e_somando(
     )
 
     venda1 = Venda.objects.create(
-        numero_nota_fiscal="NF010",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
@@ -138,7 +134,6 @@ def test_calcula_comissoes_por_vendedor_agrupando_e_somando(
     )  # comissao 1.00
 
     venda2 = Venda.objects.create(
-        numero_nota_fiscal="NF011",
         data_hora=make_aware(datetime(2026, 9, 10)),
         cliente=cliente,
         vendedor=vendedor,
@@ -148,7 +143,6 @@ def test_calcula_comissoes_por_vendedor_agrupando_e_somando(
     )  # comissao 1.00
 
     venda3 = Venda.objects.create(
-        numero_nota_fiscal="NF012",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=outro_vendedor,
@@ -172,7 +166,6 @@ def test_exclui_vendas_fora_do_periodo(
 ) -> None:
     """Vendas fora do período informado não entram no total."""
     venda_dentro = Venda.objects.create(
-        numero_nota_fiscal="NF020",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
@@ -180,7 +173,6 @@ def test_exclui_vendas_fora_do_periodo(
     ItemVenda.objects.create(venda=venda_dentro, produto=produto, quantidade=1)
 
     venda_fora = Venda.objects.create(
-        numero_nota_fiscal="NF021",
         data_hora=make_aware(datetime(2026, 10, 1)),
         cliente=cliente,
         vendedor=vendedor,

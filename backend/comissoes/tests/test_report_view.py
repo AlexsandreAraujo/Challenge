@@ -16,7 +16,6 @@ def test_endpoint_retorna_comissao_do_vendedor_no_periodo(
 ) -> None:
     """GET /api/comissoes/ retorna o total de comissão do vendedor no período."""
     venda = Venda.objects.create(
-        numero_nota_fiscal="NF200",
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
         vendedor=vendedor,
