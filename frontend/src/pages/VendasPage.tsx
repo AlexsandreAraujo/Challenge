@@ -15,7 +15,11 @@ import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteVenda, getVendas } from "../api/client";
+import Pagination from "@mui/material/Pagination";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import type { VendasQuery } from "../api/client";
 import type { Venda } from "../api/types";
+import TextField from "@mui/material/TextField";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -29,14 +33,34 @@ const formatarData = (iso: string) =>
   }).format(new Date(iso));
 
 export function VendasPage() {
+  const PAGE_SIZE = 10;
+
   const [vendas, setVendas] = useState<Venda[]>([]);
+  const [total, setTotal] = useState(0);
+  const [busca, setBusca] = useState("");
+  const [ordenacao, setOrdenacao] = useState<"data_hora" | "-data_hora">(
+    "-data_hora"
+  );
+  const [pagina, setPagina] = useState(1);
   const [itemExpandido, setItemExpandido] = useState<number | null>(null);
 
   const carregarVendas = () => {
-    getVendas().then(setVendas);
+    const query: VendasQuery = { ordering: ordenacao, page: pagina };
+    if (busca) {
+      query.search = busca;
+    }
+    getVendas(query).then((resposta) => {
+      setVendas(resposta.results);
+      setTotal(resposta.count);
+    });
   };
 
-  useEffect(carregarVendas, []);
+  useEffect(carregarVendas, [busca, ordenacao, pagina]);
+
+  const alternarOrdenacao = () => {
+    setOrdenacao(ordenacao === "data_hora" ? "-data_hora" : "data_hora");
+    setPagina(1);
+  };
 
   const excluir = async (id: number) => {
     if (!confirm("Excluir esta venda?")) {
@@ -55,6 +79,17 @@ export function VendasPage() {
         </Button>
       </Box>
 
+      <TextField
+        label="Buscar por nota fiscal, cliente ou vendedor"
+        value={busca}
+        onChange={(e) => {
+          setBusca(e.target.value);
+          setPagina(1);
+        }}
+        fullWidth
+        sx={{ mb: 2 }}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -62,7 +97,15 @@ export function VendasPage() {
               <TableCell>Nota Fiscal</TableCell>
               <TableCell>Cliente</TableCell>
               <TableCell>Vendedor</TableCell>
-              <TableCell>Data da Venda</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active
+                  direction={ordenacao === "data_hora" ? "asc" : "desc"}
+                  onClick={alternarOrdenacao}
+                >
+                  Data da Venda
+                </TableSortLabel>
+              </TableCell>
               <TableCell>Valor Total</TableCell>
               <TableCell>Opções</TableCell>
             </TableRow>
@@ -138,6 +181,12 @@ export function VendasPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Pagination
+        count={Math.ceil(total / PAGE_SIZE)}
+        page={pagina}
+        onChange={(_, novaPagina) => setPagina(novaPagina)}
+        sx={{ mt: 2, display: "flex", justifyContent: "center" }}
+      />            
     </>
   );
 }

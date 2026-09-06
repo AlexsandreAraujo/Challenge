@@ -5,6 +5,7 @@ import type {
   Vendedor,
   Venda,
   VendaInput,
+  PaginatedResponse,
 } from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -36,7 +37,22 @@ export const getProdutos = () => request<Produto[]>("/produtos/");
 export const getClientes = () => request<Cliente[]>("/clientes/");
 export const getVendedores = () => request<Vendedor[]>("/vendedores/");
 
-export const getVendas = () => request<Venda[]>("/vendas/");
+export interface VendasQuery {
+  search?: string;
+  ordering?: string;
+  page?: number;
+}
+
+export const getVendas = (query: VendasQuery = {}) => {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.ordering) params.set("ordering", query.ordering);
+  if (query.page) params.set("page", String(query.page));
+  const queryString = params.toString();
+  return request<PaginatedResponse<Venda>>(
+    `/vendas/${queryString ? `?${queryString}` : ""}`
+  );
+};
 
 export const createVenda = (dados: VendaInput) =>
   request<Venda>("/vendas/", {
