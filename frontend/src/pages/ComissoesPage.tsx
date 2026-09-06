@@ -13,6 +13,7 @@ import Paper from "@mui/material/Paper";
 import SearchIcon from "@mui/icons-material/Search";
 import { getComissoes } from "../api/client";
 import type { ComissaoVendedor } from "../api/types";
+import { Titulo } from "../components/Layout";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -46,6 +47,7 @@ export function ComissoesPage() {
 
   return (
     <>
+      <Titulo texto="Comissões" />
       <Box
         sx={{
           display: "flex",
@@ -54,7 +56,6 @@ export function ComissoesPage() {
           mb: 2,
         }}
       >
-        <Typography variant="h5">Relatório de Comissões</Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
             type="date"

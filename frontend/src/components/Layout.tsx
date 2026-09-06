@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
@@ -18,24 +18,38 @@ const paginas = [
   { titulo: "Comissões", caminho: "/comissoes", icone: <PaidIcon /> },
 ];
 
+const TituloContext = createContext<(titulo: string) => void>(() => {});
+
+interface TituloProps {
+  texto: string;
+}
+
+/** Componente sem saída visual: define o título exibido no header (AppBar). */
+export function Titulo({ texto }: TituloProps) {
+  const setTitulo = useContext(TituloContext);
+  useEffect(() => {
+    setTitulo(texto);
+  }, [texto, setTitulo]);
+  return null;
+}
+
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
   const [menuAberto, setMenuAberto] = useState(false);
-  const location = useLocation();
-  const paginaAtual = paginas.find((p) => location.pathname.startsWith(p.caminho));
+  const [titulo, setTitulo] = useState("Papelaria");
 
   return (
-    <>
+    <TituloContext.Provider value={setTitulo}>
       <AppBar position="static" color="default">
         <Toolbar>
           <IconButton edge="start" onClick={() => setMenuAberto(true)}>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center" }}>
-            {paginaAtual?.titulo ?? "Papelaria"}
+            {titulo}
           </Typography>
         </Toolbar>
       </AppBar>
@@ -57,6 +71,6 @@ export function Layout({ children }: LayoutProps) {
       </Drawer>
 
       <main style={{ padding: 24 }}>{children}</main>
-    </>
+    </TituloContext.Provider>
   );
 }

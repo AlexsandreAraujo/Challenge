@@ -22,6 +22,7 @@ import {
   updateVenda,
 } from "../api/client";
 import type { Cliente, Produto, Vendedor, ItemVendaInput } from "../api/types";
+import { Titulo } from "../components/Layout";
 
 const paraDatetimeLocal = (iso: string) => {
   const data = new Date(iso);
@@ -45,7 +46,8 @@ export function VendaFormPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
 
-  const [numeroNotaFiscal, setNumeroNotaFiscal] = useState("");
+  const [numeroCarregado, setNumeroCarregado] = useState("");
+
   const [dataHora, setDataHora] = useState(() =>
     paraDatetimeLocal(new Date().toISOString())
   );
@@ -70,7 +72,7 @@ export function VendaFormPage() {
       return;
     }
     getVenda(Number(id)).then((venda) => {
-      setNumeroNotaFiscal(venda.numero_nota_fiscal);
+      setNumeroCarregado(venda.numero_nota_fiscal);
       setDataHora(paraDatetimeLocal(venda.data_hora));
       setCliente({ id: venda.cliente, nome: venda.cliente_nome } as Cliente);
       setVendedor({ id: venda.vendedor, nome: venda.vendedor_nome } as Vendedor);
@@ -111,7 +113,6 @@ export function VendaFormPage() {
     }
 
     const dados = {
-      numero_nota_fiscal: numeroNotaFiscal,
       data_hora: new Date(dataHora).toISOString(),
       cliente: cliente.id,
       vendedor: vendedor.id,
@@ -132,10 +133,7 @@ export function VendaFormPage() {
 
   return (
     <>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {editando ? "Editar Venda" : "Nova Venda"}
-      </Typography>
-
+      <Titulo texto={editando ? `Alterar Venda - Nº ${numeroCarregado}` : "Nova Venda"} />
       {erro && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {erro}
@@ -208,13 +206,6 @@ export function VendaFormPage() {
 
         <Box sx={{ flex: 1 }}>
           <Typography variant="h6">Dados da venda</Typography>
-          <TextField
-            label="Número da Nota Fiscal"
-            value={numeroNotaFiscal}
-            onChange={(e) => setNumeroNotaFiscal(e.target.value)}
-            fullWidth
-            sx={{ my: 1 }}
-          />
           <TextField
             type="datetime-local"
             label="Data e Hora da Venda"

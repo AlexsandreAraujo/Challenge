@@ -11,7 +11,6 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteVenda, getVendas } from "../api/client";
@@ -20,6 +19,7 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import type { VendasQuery } from "../api/client";
 import type { Venda } from "../api/types";
 import TextField from "@mui/material/TextField";
+import { Titulo } from "../components/Layout";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -72,8 +72,8 @@ export function VendasPage() {
 
   return (
     <>
+      <Titulo texto="Vendas" />
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Typography variant="h5">Vendas Realizadas</Typography>
         <Button variant="contained" component={Link} to="/vendas/nova">
           Inserir nova Venda
         </Button>

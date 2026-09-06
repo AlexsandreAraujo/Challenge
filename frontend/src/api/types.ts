@@ -55,7 +55,6 @@ export interface ItemVendaInput {
 }
 
 export interface VendaInput {
-  numero_nota_fiscal: string;
   data_hora: string;
   cliente: number;
   vendedor: number;
