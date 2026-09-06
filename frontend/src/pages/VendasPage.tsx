@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -112,8 +112,8 @@ export function VendasPage() {
           </TableHead>
           <TableBody>
             {vendas.map((venda) => (
-              <>
-                <TableRow key={venda.id}>
+              <Fragment key={venda.id}>
+                <TableRow>
                   <TableCell>{venda.numero_nota_fiscal}</TableCell>
                   <TableCell>{venda.cliente_nome}</TableCell>
                   <TableCell>{venda.vendedor_nome}</TableCell>
@@ -123,18 +123,12 @@ export function VendasPage() {
                     <Button
                       size="small"
                       onClick={() =>
-                        setItemExpandido(
-                          itemExpandido === venda.id ? null : venda.id
-                        )
+                        setItemExpandido(itemExpandido === venda.id ? null : venda.id)
                       }
                     >
                       {itemExpandido === venda.id ? "Fechar" : "Ver itens"}
                     </Button>
-                    <IconButton
-                      component={Link}
-                      to={`/vendas/${venda.id}/editar`}
-                      size="small"
-                    >
+                    <IconButton component={Link} to={`/vendas/${venda.id}/editar`} size="small">
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton size="small" onClick={() => excluir(venda.id)}>
@@ -142,7 +136,7 @@ export function VendasPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-                <TableRow key={`${venda.id}-detalhe`}>
+                <TableRow>
                   <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
                     <Collapse in={itemExpandido === venda.id}>
                       <Table size="small">
@@ -163,20 +157,32 @@ export function VendasPage() {
                                 {item.produto_codigo} - {item.produto_descricao}
                               </TableCell>
                               <TableCell>{item.quantidade}</TableCell>
-                              <TableCell>
-                                {formatarMoeda(Number(item.valor_unitario))}
-                              </TableCell>
+                              <TableCell>{formatarMoeda(Number(item.valor_unitario))}</TableCell>
                               <TableCell>{formatarMoeda(item.subtotal)}</TableCell>
                               <TableCell>{item.percentual_comissao}%</TableCell>
                               <TableCell>{formatarMoeda(item.comissao)}</TableCell>
                             </TableRow>
                           ))}
+                          <TableRow>
+                            <TableCell colSpan={3} sx={{ fontWeight: "bold" }}>
+                              Total da Venda
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>
+                              {formatarMoeda(venda.valor_total)}
+                            </TableCell>
+                            <TableCell />
+                            <TableCell sx={{ fontWeight: "bold" }}>
+                              {formatarMoeda(
+                                venda.itens.reduce((soma, item) => soma + item.comissao, 0)
+                              )}
+                            </TableCell>
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </Collapse>
                   </TableCell>
                 </TableRow>
-              </>
+              </Fragment>
             ))}
           </TableBody>
         </Table>
