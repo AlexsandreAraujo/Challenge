@@ -165,3 +165,29 @@ def test_ordena_vendas_por_data_hora(
 
     numeros = [v["numero_nota_fiscal"] for v in resposta.data["results"]]
     assert numeros == ["NF701", "NF700"]
+
+
+def test_busca_nao_confunde_termos_entre_campos_diferentes(
+    client: APIClient, cliente: Cliente, vendedor: Vendedor
+) -> None:
+    """Busca por frase não deve casar palavras espalhadas em campos diferentes."""
+    Venda.objects.create(
+        numero_nota_fiscal="NF800",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=cliente,
+        vendedor=vendedor,
+    )
+    outro_cliente = Cliente.objects.create(
+        nome="Cliente 2", email="cliente2@example.com", telefone="11944444444"
+    )
+    Venda.objects.create(
+        numero_nota_fiscal="NF801",
+        data_hora=make_aware(datetime(2026, 9, 9)),
+        cliente=outro_cliente,
+        vendedor=vendedor,
+    )
+
+    resposta = client.get("/api/vendas/", {"search": cliente.nome})
+
+    assert resposta.data["count"] == 1
+    assert resposta.data["results"][0]["numero_nota_fiscal"] == "NF800"
