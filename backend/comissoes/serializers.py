@@ -13,7 +13,8 @@ class PeriodoSerializer(serializers.Serializer):
 
 
 class ComissaoVendedorSerializer(serializers.Serializer):
-    """Serializa o total de comissão de um vendedor num período."""
+    """Serializa o total de vendas e de comissão de um vendedor num período."""
 
     vendedor = VendedorSerializer()
+    total_vendas = serializers.DecimalField(max_digits=10, decimal_places=2)
     total = serializers.DecimalField(max_digits=10, decimal_places=2)

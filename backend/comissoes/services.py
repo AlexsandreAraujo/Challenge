@@ -15,6 +15,7 @@ class ComissaoVendedor:
     """Total de comissão a pagar a um vendedor num período."""
 
     vendedor: Vendedor
+    total_vendas: Decimal
     total: Decimal
 
 
@@ -50,7 +51,7 @@ def calcular_comissao_venda(venda: Venda) -> Decimal:
 def calcular_comissoes_por_vendedor(
     data_inicio: date, data_fim: date
 ) -> list[ComissaoVendedor]:
-    """Calcula o total de comissão de cada vendedor com vendas no período."""
+    """Calcula o total de vendas e de comissão de cada vendedor no período."""
     vendas = (
         Venda.objects.filter(
             data_hora__date__gte=data_inicio, data_hora__date__lte=data_fim
@@ -59,13 +60,20 @@ def calcular_comissoes_por_vendedor(
         .prefetch_related("itens__produto")
     )
 
-    totais: dict[Vendedor, Decimal] = {}
+    totais_vendas: dict[Vendedor, Decimal] = {}
+    totais_comissao: dict[Vendedor, Decimal] = {}
     for venda in vendas:
-        totais.setdefault(venda.vendedor, Decimal("0"))
-        totais[venda.vendedor] += calcular_comissao_venda(venda)
+        totais_vendas.setdefault(venda.vendedor, Decimal("0"))
+        totais_comissao.setdefault(venda.vendedor, Decimal("0"))
+        totais_vendas[venda.vendedor] += venda.valor_total
+        totais_comissao[venda.vendedor] += calcular_comissao_venda(venda)
 
     resultado = [
-        ComissaoVendedor(vendedor=vendedor, total=total)
-        for vendedor, total in totais.items()
+        ComissaoVendedor(
+            vendedor=vendedor,
+            total_vendas=totais_vendas[vendedor],
+            total=totais_comissao[vendedor],
+        )
+        for vendedor in totais_vendas
     ]
     return sorted(resultado, key=lambda c: c.vendedor.nome)

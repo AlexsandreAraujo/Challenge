@@ -26,3 +26,8 @@ class Cliente(Pessoa):
 
 class Vendedor(Pessoa):
     """Vendedor responsável por registrar as vendas."""
+
+    @property
+    def codigo(self) -> str:
+        """Código sequencial do vendedor, derivado do ID."""
+        return f"{self.id:03d}"

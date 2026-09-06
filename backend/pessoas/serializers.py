@@ -22,4 +22,4 @@ class VendedorSerializer(serializers.ModelSerializer):
         """Define o model e os campos expostos pela API."""
 
         model = Vendedor
-        fields = ["id", "nome", "email", "telefone"]
+        fields = ["id", "codigo", "nome", "email", "telefone"]
