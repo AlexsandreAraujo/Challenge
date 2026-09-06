@@ -96,22 +96,26 @@ export function ComissoesPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Cód.</TableCell>
                 <TableCell>Vendedor</TableCell>
+                <TableCell>Total de Vendas</TableCell>
                 <TableCell>Total de Comissões</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {resultado.map((item) => (
                 <TableRow key={item.vendedor.id}>
+                  <TableCell>{item.vendedor.codigo}</TableCell>
                   <TableCell>{item.vendedor.nome}</TableCell>
+                  <TableCell>{item.total_vendas}</TableCell>
                   <TableCell>{formatarMoeda(Number(item.total))}</TableCell>
                 </TableRow>
               ))}
               <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }}>Total Geral</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>
-                  {formatarMoeda(totalGeral)}
+                <TableCell colSpan={3} sx={{ fontWeight: "bold" }}>
+                  Total de Comissões do Período
                 </TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>{formatarMoeda(totalGeral)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

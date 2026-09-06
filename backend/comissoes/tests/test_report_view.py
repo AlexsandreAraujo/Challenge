@@ -30,7 +30,7 @@ def test_endpoint_retorna_comissao_do_vendedor_no_periodo(
     assert len(resposta.data) == 1
     assert resposta.data[0]["vendedor"]["nome"] == vendedor.nome
     assert resposta.data[0]["total"] == "2.00"
-    assert resposta.data[0]["total_vendas"] == "20.00"
+    assert resposta.data[0]["total_vendas"] == 1
 
 
 def test_endpoint_com_data_invalida_retorna_400(client: APIClient, db) -> None:

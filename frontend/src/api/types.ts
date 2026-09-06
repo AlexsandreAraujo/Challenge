@@ -15,6 +15,7 @@ export interface Cliente {
 
 export interface Vendedor {
   id: number;
+  codigo: string;
   nome: string;
   email: string;
   telefone: string;
@@ -46,6 +47,7 @@ export interface Venda {
 
 export interface ComissaoVendedor {
   vendedor: Vendedor;
+  total_vendas: number;
   total: string;
 }
 

@@ -185,10 +185,10 @@ def test_exclui_vendas_fora_do_periodo(
     assert resultado[0].total == Decimal("1.00")
 
 
-def test_total_vendas_soma_valor_das_vendas_do_vendedor(
+def test_total_vendas_conta_quantidade_de_vendas_do_vendedor(
     cliente: Cliente, vendedor: Vendedor, produto: Produto
 ) -> None:
-    """total_vendas soma o valor_total das vendas do vendedor no período."""
+    """total_vendas conta a quantidade de vendas do vendedor no período."""
     venda1 = Venda.objects.create(
         data_hora=make_aware(datetime(2026, 9, 9)),
         cliente=cliente,
@@ -205,4 +205,4 @@ def test_total_vendas_soma_valor_das_vendas_do_vendedor(
 
     resultado = calcular_comissoes_por_vendedor(date(2026, 9, 1), date(2026, 9, 30))
 
-    assert resultado[0].total_vendas == Decimal("30.00")
+    assert resultado[0].total_vendas == 2
