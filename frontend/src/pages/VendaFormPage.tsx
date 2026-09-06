@@ -23,14 +23,7 @@ import {
 } from "../api/client";
 import type { Cliente, Produto, Vendedor, ItemVendaInput } from "../api/types";
 import { Titulo } from "../components/Layout";
-
-const paraDatetimeLocal = (iso: string) => {
-  const data = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}T${pad(
-    data.getHours()
-  )}:${pad(data.getMinutes())}`;
-};
+import dayjs, { type Dayjs } from "dayjs";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -48,9 +41,7 @@ export function VendaFormPage() {
 
   const [numeroCarregado, setNumeroCarregado] = useState("");
 
-  const [dataHora, setDataHora] = useState(() =>
-    paraDatetimeLocal(new Date().toISOString())
-  );
+  const [dataHora, setDataHora] = useState<Dayjs | null>(() => dayjs());
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [vendedor, setVendedor] = useState<Vendedor | null>(null);
   const [itens, setItens] = useState<ItemVendaInput[]>([]);
@@ -60,6 +51,8 @@ export function VendaFormPage() {
   );
   const [quantidade, setQuantidade] = useState(1);
   const [erro, setErro] = useState<string | null>(null);
+
+  const formularioValido = Boolean(cliente && vendedor && dataHora && itens.length > 0);
 
   useEffect(() => {
     getProdutos().then(setProdutos);
@@ -73,7 +66,7 @@ export function VendaFormPage() {
     }
     getVenda(Number(id)).then((venda) => {
       setNumeroCarregado(venda.numero_nota_fiscal);
-      setDataHora(paraDatetimeLocal(venda.data_hora));
+      setDataHora(dayjs(venda.data_hora));
       setCliente({ id: venda.cliente, nome: venda.cliente_nome } as Cliente);
       setVendedor({ id: venda.vendedor, nome: venda.vendedor_nome } as Vendedor);
       setItens(
@@ -89,9 +82,14 @@ export function VendaFormPage() {
     if (!produtoSelecionado) {
       return;
     }
+    if (quantidade < 1) {
+      setErro("A quantidade deve ser no mínimo 1.");
+      return;
+    }
     setItens([...itens, { produto: produtoSelecionado.id, quantidade }]);
     setProdutoSelecionado(null);
     setQuantidade(1);
+    setErro(null);
   };
 
   const removerItem = (index: number) => {
@@ -113,7 +111,7 @@ export function VendaFormPage() {
     }
 
     const dados = {
-      data_hora: new Date(dataHora).toISOString(),
+      data_hora: dataHora!.toISOString(),
       cliente: cliente.id,
       vendedor: vendedor.id,
       itens,
@@ -138,7 +136,7 @@ export function VendaFormPage() {
   };
 
   return (
-    <>
+    <Box sx={{ px: "24px" }}>
       <Titulo texto={editando ? `Alterar Venda - Nº ${numeroCarregado}` : "Nova Venda"} />
       {erro && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -146,40 +144,51 @@ export function VendaFormPage() {
         </Alert>
       )}
 
-      <Box sx={{ display: "flex", gap: 4 }}>
-        <Box sx={{ flex: 2 }}>
-          <Typography variant="h6">Produtos</Typography>
-          <Box sx={{ display: "flex", gap: 2, my: 2 }}>
-            <Autocomplete
-              options={produtos}
-              slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
-              getOptionLabel={(p) => `${p.codigo} - ${p.descricao}`}
-              value={produtoSelecionado}
-              onChange={(_, valor) => setProdutoSelecionado(valor)}
-              sx={{ flex: 1 }}
-              renderInput={(params) => (
-                <TextField {...params} label="Buscar produto" />
-              )}
-            />
-            <TextField
-              type="number"
-              label="Quantidade"
-              value={quantidade}
-              onChange={(e) => setQuantidade(Number(e.target.value))}
-              sx={{ width: 120 }}
-            />
-            <Button variant="contained" onClick={adicionarItem}>
+      <Box sx={{ display: "flex", gap: 4, minHeight: "calc(100vh - 64px - 48px)" }}>
+        <Box sx={{ flex: 2, borderRight: 1, borderColor: "divider", pr: 4 }}>
+          <Typography variant="h6" align="left">
+            Produtos
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2, my: 2, alignItems: "flex-end" }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" align="left" sx={{ mb: 0.5 }}>
+                Buscar pelo código de barras ou descrição
+              </Typography>
+              <Autocomplete
+                options={produtos}
+                getOptionLabel={(p) => `${p.codigo} - ${p.descricao}`}
+                value={produtoSelecionado}
+                onChange={(_, valor) => setProdutoSelecionado(valor)}
+                slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
+                renderInput={(params) => (
+                  <TextField {...params} placeholder="Digite o código ou nome do produto" />
+                )}
+              />
+            </Box>
+            <Box>
+              <Typography variant="body2" align="left" sx={{ mb: 0.5 }}>
+                Quantidade de itens
+              </Typography>
+              <TextField
+                type="number"
+                value={quantidade}
+                onChange={(e) => setQuantidade(Number(e.target.value))}
+                slotProps={{ htmlInput: { min: 1 } }}
+                sx={{ width: 145 }}
+              />
+            </Box>
+            <Button variant="contained" onClick={adicionarItem} sx={{ height: 58 }}>
               Adicionar
             </Button>
           </Box>
 
-          <Table>
-            <TableHead>
+          <Table sx={{ "& .MuiTableCell-root": { border: "none" } }}>
+            <TableHead sx={{ "& .MuiTableCell-root": { fontWeight: "bold", fontSize: 16 } }}>
               <TableRow>
-                <TableCell>Produtos/Serviço</TableCell>
-                <TableCell>Quantidade</TableCell>
-                <TableCell>Preço unitário</TableCell>
-                <TableCell>Total</TableCell>
+                <TableCell align="left">Produtos/Serviço</TableCell>
+                <TableCell align="center">Quantidade</TableCell>
+                <TableCell align="center">Preço unitário</TableCell>
+                <TableCell align="center">Total</TableCell>
                 <TableCell />
               </TableRow>
             </TableHead>
@@ -188,19 +197,24 @@ export function VendaFormPage() {
                 const produto = buscarProduto(item.produto);
                 return (
                   <TableRow key={index}>
-                    <TableCell>
+                    <TableCell align="left">
                       {produto ? `${produto.codigo} - ${produto.descricao}` : "..."}
                     </TableCell>
-                    <TableCell>{item.quantidade}</TableCell>
-                    <TableCell>
+                    <TableCell align="center">{item.quantidade}</TableCell>
+                    <TableCell align="center">
                       {produto && formatarMoeda(Number(produto.valor_unitario))}
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center">
                       {produto &&
                         formatarMoeda(Number(produto.valor_unitario) * item.quantidade)}
                     </TableCell>
-                    <TableCell>
-                      <IconButton size="small" color="error" onClick={() => removerItem(index)}>
+                    <TableCell align="center">
+                      <IconButton 
+                        size="small" 
+                        color="error" 
+                        onClick={() => removerItem(index)} 
+                        sx={{ "&:hover": { backgroundColor: "#EEC5C4" } }}
+                      >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -211,55 +225,63 @@ export function VendaFormPage() {
           </Table>
         </Box>
 
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h6">Dados da venda</Typography>
+        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Typography variant="h6" align="left">
+            Dados da venda
+          </Typography>
+          <Typography variant="body2" align="left" sx={{ mt: 2, mb: 0.5 }}>
+            Data e Hora da Venda
+          </Typography>
           <TextField
-            type="datetime-local"
-            label="Data e Hora da Venda"
-            value={dataHora}
-            onChange={(e) => setDataHora(e.target.value)}
+            value={dataHora ? dataHora.format("DD/MM/YYYY - HH:mm") : ""}
+            disabled
             fullWidth
-            sx={{ my: 1 }}
-            slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ mb: 2 }}
           />
+          <Typography variant="body2" align="left" sx={{ mt: 2, mb: 0.5 }}>
+            Escolha um vendedor
+          </Typography>
           <Autocomplete
             options={vendedores}
-            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
             getOptionLabel={(v) => v.nome}
             value={vendedor}
             onChange={(_, valor) => setVendedor(valor)}
-            sx={{ my: 1 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Escolha um vendedor" />
-            )}
+            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
+            sx={{ mb: 2 }}
+            renderInput={(params) => <TextField {...params} placeholder="Selecione o nome" />}
           />
+          <Typography variant="body2" align="left" sx={{ mt: 2, mb: 0.5 }}>
+            Escolha um cliente
+          </Typography>
           <Autocomplete
             options={clientes}
-            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
             getOptionLabel={(c) => c.nome}
             value={cliente}
             onChange={(_, valor) => setCliente(valor)}
+            slotProps={{ listbox: { sx: { maxHeight: 252, overflow: "auto" } } }}
             sx={{ my: 1 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Escolha um cliente" />
-            )}
+            renderInput={(params) => <TextField {...params} placeholder="Selecione o nome" />}
           />
 
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-            <Typography variant="subtitle1">Valor total da venda:</Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 32 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              Valor total da venda:
+            </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: 24 }}>
               {formatarMoeda(valorTotal)}
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-            <Button onClick={() => navigate("/vendas")}>Cancelar</Button>
-            <Button variant="contained" onClick={finalizar}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: "auto" }}>
+            <Button variant="contained" onClick={() => navigate("/vendas")}>
+              Cancelar
+            </Button>
+            <Button variant="contained" onClick={finalizar} disabled={!formularioValido}>
               Finalizar
             </Button>
           </Box>
         </Box>
       </Box>
-    </>
+    </Box>
   );
 }
