@@ -1,7 +1,8 @@
 import { useState } from "react";
+import dayjs, { type Dayjs } from "dayjs";
+import "dayjs/locale/pt-br";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -11,6 +12,9 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import SearchIcon from "@mui/icons-material/Search";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { getComissoes } from "../api/client";
 import type { ComissaoVendedor } from "../api/types";
 import { Titulo } from "../components/Layout";
@@ -21,8 +25,8 @@ const formatarMoeda = (valor: number) =>
   );
 
 export function ComissoesPage() {
-  const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
+  const [dataInicio, setDataInicio] = useState<Dayjs | null>(null);
+  const [dataFim, setDataFim] = useState<Dayjs | null>(null);
   const [resultado, setResultado] = useState<ComissaoVendedor[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -33,7 +37,10 @@ export function ComissoesPage() {
     }
     setErro(null);
     try {
-      const dados = await getComissoes(dataInicio, dataFim);
+      const dados = await getComissoes(
+        dataInicio.format("YYYY-MM-DD"),
+        dataFim.format("YYYY-MM-DD")
+      );
       setResultado(dados);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao buscar comissões.");
@@ -46,7 +53,7 @@ export function ComissoesPage() {
   );
 
   return (
-    <>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
       <Titulo texto="Comissões" />
       <Box
         sx={{
@@ -56,20 +63,19 @@ export function ComissoesPage() {
           mb: 2,
         }}
       >
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <TextField
-            type="date"
+        <Typography variant="h5">Relatório de Comissões</Typography>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <DatePicker
             label="Período de Início"
             value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
+            onChange={setDataInicio}
+            format="DD/MM/YYYY"
           />
-          <TextField
-            type="date"
+          <DatePicker
             label="Período de Fim"
             value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
+            onChange={setDataFim}
+            format="DD/MM/YYYY"
           />
           <IconButton onClick={buscar} color="primary">
             <SearchIcon />
@@ -80,7 +86,7 @@ export function ComissoesPage() {
       {erro && <Typography color="error">{erro}</Typography>}
 
       {resultado === null && !erro && (
-        <Typography color="text.secondary">
+        <Typography color="text.secondary" sx={{ textAlign: "center" }}>
           Para visualizar o relatório, selecione um período nos campos acima.
         </Typography>
       )}
@@ -111,6 +117,6 @@ export function ComissoesPage() {
           </Table>
         </TableContainer>
       )}
-    </>
+    </LocalizationProvider>
   );
 }
