@@ -26,17 +26,20 @@ import Alert from "@mui/material/Alert";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
+import Typography from "@mui/material/Typography";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     valor
   );
 
-const formatarData = (iso: string) =>
-  new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(iso));
+const formatarData = (iso: string) => {
+  const data = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(data.getDate())}/${pad(data.getMonth() + 1)}/${data.getFullYear()} - ${pad(
+    data.getHours()
+  )}:${pad(data.getMinutes())}`;
+};
 
 export function VendasPage() {
   const PAGE_SIZE = 10;
@@ -85,7 +88,10 @@ export function VendasPage() {
   return (
     <>
       <Titulo texto="Vendas" />
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h6" color="primary" sx={{ fontWeight: "bold" }}>
+          Vendas Realizadas
+        </Typography>
         <Button variant="contained" component={Link} to="/vendas/nova">
           Inserir nova Venda
         </Button>
@@ -102,14 +108,25 @@ export function VendasPage() {
         sx={{ mb: 2 }}
       />
 
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        sx={{ boxShadow: "none", border: "none", maxHeight: "81vh", overflow: "auto" }}
+      >
         <Table>
-          <TableHead>
+          <TableHead
+            sx={{
+              "& .MuiTableCell-root": {
+                fontWeight: "bold",
+                borderBottom: 1,
+                borderColor: "#888888",
+              },
+            }}
+>
             <TableRow>
-              <TableCell>Nota Fiscal</TableCell>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Vendedor</TableCell>
-              <TableCell>
+              <TableCell align="center">Nota Fiscal</TableCell>
+              <TableCell align="left">Cliente</TableCell>
+              <TableCell align="left">Vendedor</TableCell>
+              <TableCell align="center">
                 <TableSortLabel
                   active
                   direction={ordenacao === "data_hora" ? "asc" : "desc"}
@@ -118,72 +135,96 @@ export function VendasPage() {
                   Data da Venda
                 </TableSortLabel>
               </TableCell>
-              <TableCell>Valor Total</TableCell>
-              <TableCell>Opções</TableCell>
+              <TableCell align="center">Valor Total</TableCell>
+              <TableCell align="center">Opções</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {vendas.map((venda) => (
               <Fragment key={venda.id}>
-                <TableRow>
-                  <TableCell>{venda.numero_nota_fiscal}</TableCell>
+                <TableRow sx={{ "& .MuiTableCell-root": { borderBottom: 1, borderColor: "#888888" } }}>
+                  <TableCell align="center">{venda.numero_nota_fiscal}</TableCell>
                   <TableCell>{venda.cliente_nome}</TableCell>
                   <TableCell>{venda.vendedor_nome}</TableCell>
-                  <TableCell>{formatarData(venda.data_hora)}</TableCell>
-                  <TableCell>{formatarMoeda(venda.valor_total)}</TableCell>
-                  <TableCell>
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        setItemExpandido(itemExpandido === venda.id ? null : venda.id)
-                      }
-                    >
-                      {itemExpandido === venda.id ? "Fechar" : "Ver itens"}
-                    </Button>
-                    <IconButton component={Link} to={`/vendas/${venda.id}/editar`} size="small">
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" color="error" onClick={() => setVendaParaExcluir(venda.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell align="center">{formatarData(venda.data_hora)}</TableCell>
+                  <TableCell align="center">{formatarMoeda(venda.valor_total)}</TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 3 }}>
+                      <Button
+                        size="small"                        
+                        sx={{ fontWeight: "bold" }}
+                        onClick={() =>
+                          setItemExpandido(itemExpandido === venda.id ? null : venda.id)
+                        }
+                      >
+                        {itemExpandido === venda.id ? "Fechar" : "Ver itens"}
+                      </Button>
+                      <IconButton component={Link} to={`/vendas/${venda.id}/editar`} size="small" color="primary">
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => setVendaParaExcluir(venda.id)}
+                        sx={{ "&:hover": { backgroundColor: "#EEC5C4" } }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
                     <Collapse in={itemExpandido === venda.id}>
-                      <Table size="small">
-                        <TableHead>
+                      <Table size="small" sx={{ "& .MuiTableCell-root": { borderBottom: "none" } }}>
+                        <TableHead sx={{ "& .MuiTableCell-root": { fontWeight: "bold" } }}>
                           <TableRow>
-                            <TableCell>Produtos/Serviço</TableCell>
-                            <TableCell>Quantidade</TableCell>
-                            <TableCell>Preço unitário</TableCell>
-                            <TableCell>Total do Produto</TableCell>
-                            <TableCell>% de Comissão</TableCell>
-                            <TableCell>Comissão</TableCell>
+                            <TableCell align="left">Produtos/Serviço</TableCell>
+                            <TableCell align="center">Quantidade</TableCell>
+                            <TableCell align="center">Preço unitário</TableCell>
+                            <TableCell align="center">Total do Produto</TableCell>
+                            <TableCell align="center">% de Comissão</TableCell>
+                            <TableCell align="center">Comissão</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {venda.itens.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell>
+                              <TableCell align="left">
                                 {item.produto_codigo} - {item.produto_descricao}
                               </TableCell>
-                              <TableCell>{item.quantidade}</TableCell>
-                              <TableCell>{formatarMoeda(Number(item.valor_unitario))}</TableCell>
-                              <TableCell>{formatarMoeda(item.subtotal)}</TableCell>
-                              <TableCell>{item.percentual_comissao}%</TableCell>
-                              <TableCell>{formatarMoeda(item.comissao)}</TableCell>
+                              <TableCell align="center">{item.quantidade}</TableCell>
+                              <TableCell align="center">{formatarMoeda(Number(item.valor_unitario))}</TableCell>
+                              <TableCell align="center">{formatarMoeda(item.subtotal)}</TableCell>
+                              <TableCell align="center">{item.percentual_comissao}%</TableCell>
+                              <TableCell align="center">{formatarMoeda(item.comissao)}</TableCell>
                             </TableRow>
                           ))}
                           <TableRow>
-                            <TableCell colSpan={3} sx={{ fontWeight: "bold" }}>
+                            <TableCell
+                              align="left"
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                            >
                               Total da Venda
                             </TableCell>
-                            <TableCell sx={{ fontWeight: "bold" }}>
+                            <TableCell
+                              align="center"
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                            >
+                              {venda.itens.reduce((soma, item) => soma + item.quantidade, 0)}
+                            </TableCell>
+                            <TableCell sx={{ borderBottom: "1px solid #888888 !important" }} />
+                            <TableCell
+                              align="center"
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                            >
                               {formatarMoeda(venda.valor_total)}
                             </TableCell>
-                            <TableCell />
-                            <TableCell sx={{ fontWeight: "bold" }}>
+                            <TableCell sx={{ borderBottom: "1px solid #888888 !important" }} />
+                            <TableCell
+                              align="center"
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                            >
                               {formatarMoeda(
                                 venda.itens.reduce((soma, item) => soma + item.comissao, 0)
                               )}

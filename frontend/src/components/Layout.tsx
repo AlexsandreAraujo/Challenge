@@ -45,12 +45,21 @@ export function Layout({ children }: LayoutProps) {
   return (
     <TituloContext.Provider value={setTitulo}>
       <AppBar position="static" color="default">
-        <Toolbar>
-          <IconButton edge="start" onClick={() => setMenuAberto(true)}>
+        <Toolbar sx={{ position: "relative" }}>
+          <IconButton edge="start" color="primary" onClick={() => setMenuAberto(true)}>
             <MenuIcon />
           </IconButton>
-          <img src={logo} alt="Logo" height={32} style={{ marginLeft: 8, marginRight: 16 }} />
-          <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center" }}>
+          <img src={logo} alt="Logo" height={56} style={{ marginLeft: 8, marginRight: 16 }} />
+          <Typography
+            variant="h4"
+            sx={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              color: "primary.main",
+              fontWeight: "bold",
+            }}
+          >
             {titulo}
           </Typography>
         </Toolbar>
