@@ -20,6 +20,12 @@ import type { VendasQuery } from "../api/client";
 import type { Venda } from "../api/types";
 import TextField from "@mui/material/TextField";
 import { Titulo } from "../components/Layout";
+import { useLocation } from "react-router-dom";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -34,6 +40,7 @@ const formatarData = (iso: string) =>
 
 export function VendasPage() {
   const PAGE_SIZE = 10;
+  const location = useLocation();
 
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [total, setTotal] = useState(0);
@@ -43,6 +50,10 @@ export function VendasPage() {
   );
   const [pagina, setPagina] = useState(1);
   const [itemExpandido, setItemExpandido] = useState<number | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(
+    (location.state as { mensagem?: string } | null)?.mensagem ?? null
+  );
+  const [vendaParaExcluir, setVendaParaExcluir] = useState<number | null>(null);
 
   const carregarVendas = () => {
     const query: VendasQuery = { ordering: ordenacao, page: pagina };
@@ -62,11 +73,12 @@ export function VendasPage() {
     setPagina(1);
   };
 
-  const excluir = async (id: number) => {
-    if (!confirm("Excluir esta venda?")) {
+  const confirmarExclusao = async () => {
+    if (vendaParaExcluir === null) {
       return;
     }
-    await deleteVenda(id);
+    await deleteVenda(vendaParaExcluir);
+    setVendaParaExcluir(null);
     carregarVendas();
   };
 
@@ -131,7 +143,7 @@ export function VendasPage() {
                     <IconButton component={Link} to={`/vendas/${venda.id}/editar`} size="small">
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => excluir(venda.id)}>
+                    <IconButton size="small" onClick={() => setVendaParaExcluir(venda.id)}>
                       <DeleteIcon fontSize="small" color="error" />
                     </IconButton>
                   </TableCell>
@@ -192,7 +204,26 @@ export function VendasPage() {
         page={pagina}
         onChange={(_, novaPagina) => setPagina(novaPagina)}
         sx={{ mt: 2, display: "flex", justifyContent: "center" }}
-      />            
+      />
+      <Snackbar
+        open={Boolean(mensagemSucesso)}
+        autoHideDuration={4000}
+        onClose={() => setMensagemSucesso(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="success" onClose={() => setMensagemSucesso(null)}>
+          {mensagemSucesso}
+        </Alert>
+      </Snackbar>
+      <Dialog open={vendaParaExcluir !== null} onClose={() => setVendaParaExcluir(null)}>
+        <DialogTitle>Excluir esta venda?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setVendaParaExcluir(null)}>Cancelar</Button>
+          <Button onClick={confirmarExclusao} color="error" variant="contained">
+            Excluir
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

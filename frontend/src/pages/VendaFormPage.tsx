@@ -125,7 +125,13 @@ export function VendaFormPage() {
       } else {
         await createVenda(dados);
       }
-      navigate("/vendas");
+      navigate("/vendas", {
+        state: {
+          mensagem: editando
+            ? "VENDA ALTERADA COM SUCESSO!"
+            : "VENDA REALIZADA COM SUCESSO!",
+        },
+      });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao salvar a venda.");
     }
