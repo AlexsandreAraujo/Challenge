@@ -11,7 +11,7 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import Box from "@mui/material/Box";
-import EditIcon from "@mui/icons-material/Edit";
+import { EditIcon } from "../components/icons/EditIcon";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteVenda, getVendas } from "../api/client";
 import Pagination from "@mui/material/Pagination";

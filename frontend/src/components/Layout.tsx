@@ -12,6 +12,7 @@ import ListItemText from "@mui/material/ListItemText";
 import MenuIcon from "@mui/icons-material/Menu";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PaidIcon from "@mui/icons-material/Paid";
+import logo from "../assets/logo.svg";
 
 const paginas = [
   { titulo: "Vendas", caminho: "/vendas", icone: <ReceiptLongIcon /> },
@@ -48,6 +49,7 @@ export function Layout({ children }: LayoutProps) {
           <IconButton edge="start" onClick={() => setMenuAberto(true)}>
             <MenuIcon />
           </IconButton>
+          <img src={logo} alt="Logo" height={32} style={{ marginLeft: 8, marginRight: 16 }} />
           <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center" }}>
             {titulo}
           </Typography>
