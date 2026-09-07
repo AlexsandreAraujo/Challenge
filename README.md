@@ -5,6 +5,8 @@ com base nas vendas de um período e nos percentuais de comissão cadastrados no
 produtos — respeitando limites mínimos/máximos configuráveis por dia da semana.
 Desenvolvido como desafio técnico para a **Spassu**.
 
+**🌐 Aplicação em produção:** https://desafio-alexsandre.duckdns.org
+
 ---
 
 ## Sumário
@@ -15,6 +17,7 @@ Desenvolvido como desafio técnico para a **Spassu**.
 - [Funcionalidades](#funcionalidades)
 - [Pré-requisitos](#pré-requisitos)
 - [Como Executar](#como-executar)
+- [Deploy](#deploy)
 - [Variáveis de Ambiente](#variáveis-de-ambiente)
 - [Endpoints da API](#endpoints-da-api)
 - [Estrutura do Projeto](#estrutura-do-projeto)
@@ -82,6 +85,13 @@ backend/
 
 ### Testes
 - **[Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react)** — Testes de componente no frontend
+
+### Deploy
+- **[Gunicorn](https://gunicorn.org/) + [Whitenoise](https://whitenoise.readthedocs.io/)** — Servidor WSGI de produção e estáticos do Django Admin
+- **[Docker](https://www.docker.com/) + Docker Compose** — Containerização (backend, nginx, certbot)
+- **[nginx](https://nginx.org/)** — Proxy reverso, servidor de estáticos do frontend e roteamento por caminho
+- **[Certbot](https://certbot.eff.org/) / Let's Encrypt** — Certificado HTTPS renovado automaticamente
+- **[GitHub Actions](https://github.com/features/actions)** — CI (testes) + CD (deploy via SSH) a cada push
 
 ---
 
@@ -160,6 +170,64 @@ npm run dev
 
 ---
 
+## Deploy
+
+A aplicação está publicada em produção numa instância Oracle Cloud (free
+tier), com **HTTPS via Let's Encrypt** e **deploy automático via GitHub
+Actions** a cada push na branch `master`.
+
+### Arquitetura de produção
+
+```
+                    ┌─────────────┐
+  Internet ────────▶│    nginx    │── /             → estáticos do React (build)
+   (HTTPS)          │ (container) │── /api/, /admin/ → proxy_pass → backend
+                    └──────┬──────┘── /static/       → proxy_pass → backend
+                           │
+                    ┌──────▼──────┐
+                    │   backend   │  Django + Gunicorn + Whitenoise
+                    │ (container) │
+                    └─────────────┘
+
+        certbot (container) — renova o certificado Let's Encrypt sozinho
+```
+
+- **`nginx/Dockerfile`** — build multi-stage: builda o frontend (Vite) e serve
+  o resultado estático, além de fazer proxy reverso pro backend **por
+  caminho** (`/api/`, `/admin/`, `/static/`), já que o domínio usado é único
+  (sem subdomínios separados).
+- **`backend/Dockerfile`** — roda com `gunicorn` (não `manage.py runserver`,
+  que o próprio Django documenta como inadequado pra produção); `whitenoise`
+  serve os estáticos do Django Admin sem precisar de configuração no nginx.
+- **`docker-compose.yml`** — orquestra os 3 serviços (`backend`, `nginx`,
+  `certbot`) com um volume nomeado persistindo o banco SQLite entre deploys
+  (sem isso, cada `docker compose up --build` apagaria o banco).
+- **`.github/workflows/deploy.yml`** — a cada push em `master`: roda os
+  testes do backend (`pytest` + `ruff check`) e do frontend (`vitest` +
+  `npm run build`, que pega erros de TypeScript que só aparecem no build de
+  produção, não no `npm run dev`); só se tudo passar, conecta via SSH na VPS
+  e roda `git pull` + `docker compose up -d --build` + `migrate`.
+
+### Rodando o deploy você mesmo
+
+```bash
+# na VPS, com Docker e Docker Compose instalados
+git clone <url-do-repositorio>
+cd Challenge
+
+# criar backend/.env com valores de produção (ver seção seguinte)
+
+docker compose up -d --build
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py createsuperuser
+```
+
+O primeiro certificado HTTPS exige um passo manual único (o Let's Encrypt
+precisa validar o domínio antes de existir um certificado pra o nginx usar) —
+documentado como comentário no início de `nginx/nginx.conf`.
+
+---
+
 ## Variáveis de Ambiente
 
 ### Backend (`.env`)
@@ -170,6 +238,8 @@ npm run dev
 | `DEBUG` | Ativa modo de depuração (nunca `True` em produção) | `True` |
 | `ALLOWED_HOSTS` | Hosts permitidos, separados por vírgula | `localhost,127.0.0.1` |
 | `DATABASE_URL` | Connection string do banco (`sqlite:///...`, `postgres://...`) | `sqlite:///db.sqlite3` |
+| `CORS_ALLOWED_ORIGINS` | Origens autorizadas a chamar a API, separadas por vírgula | `http://localhost:5173` |
+| `CSRF_TRUSTED_ORIGINS` | Origens confiáveis pra validação de CSRF, separadas por vírgula | `http://localhost:5173` |
 
 ### Frontend (`.env`)
 
@@ -213,6 +283,10 @@ npm run dev
 
 ```
 Challenge/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml    # CI (testes) + CD (deploy via SSH)
+│
 ├── backend/
 │   ├── config/          # settings, urls
 │   ├── catalogo/         # Produto (models, admin, serializers, views, tests)
@@ -220,14 +294,21 @@ Challenge/
 │   ├── vendas/           # Venda, ItemVenda
 │   ├── comissoes/        # FaixaComissaoDia, services.py, endpoint de relatório
 │   ├── conftest.py        # Fixtures compartilhadas entre testes
+│   ├── Dockerfile
 │   └── manage.py
 │
-└── frontend/
-    └── src/
-        ├── api/          # client.ts (chamadas HTTP), types.ts
-        ├── components/   # Layout (header, menu), ícones customizados
-        ├── pages/         # VendasPage, VendaFormPage, ComissoesPage
-        └── theme.ts       # Cores e tipografia customizadas
+├── frontend/
+│   └── src/
+│       ├── api/          # client.ts (chamadas HTTP), types.ts
+│       ├── components/   # Layout (header, menu), ícones customizados
+│       ├── pages/         # VendasPage, VendaFormPage, ComissoesPage
+│       └── theme.ts       # Cores e tipografia customizadas
+│
+├── nginx/
+│   ├── Dockerfile        # build do frontend + imagem final do nginx
+│   └── nginx.conf        # proxy reverso por caminho + TLS
+│
+└── docker-compose.yml    # backend + nginx + certbot
 ```
 
 ---
