@@ -4,6 +4,8 @@ services:
     env_file: ./backend/.env
     expose:
       - "8000"
+    volumes:
+      - sqlite_data:/app/data
     restart: unless-stopped
 
   nginx:
@@ -33,3 +35,4 @@ services:
 volumes:
   certbot_certs:
   certbot_www:
+  sqlite_data:
