@@ -23,6 +23,7 @@ Desenvolvido como desafio técnico para a **Spassu**.
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Testes](#testes)
 - [Fluxo de Cálculo de Comissão](#fluxo-de-cálculo-de-comissão)
+- [Plano de Implementações Futuras](#plano-de-implementações-futuras)
 
 ---
 
@@ -373,6 +374,21 @@ do produto         a faixa mínima e máxima
   Comissão do vendedor no período = soma das comissões
   de todas as suas vendas no intervalo de datas
 ```
+
+---
+
+## Plano de Implementações Futuras
+
+Com mais tempo, os próximos passos seriam:
+
+- **Congelar preço/comissão no momento da venda** — hoje esses valores são
+  calculados dinamicamente a partir do cadastro atual do produto; um sistema
+  de faturamento real deveria "congelá-los" no momento da venda.
+- **Atualizar itens de venda por diff** — a edição de uma venda hoje
+  substitui todos os itens; uma versão futura compararia o que já existe com
+  o que foi enviado, atualizando só o necessário.
+- **Code-splitting do frontend** — dividir o bundle React por rota
+  (`React.lazy`), carregando cada tela sob demanda.
 
 ---
 
