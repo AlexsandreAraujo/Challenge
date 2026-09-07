@@ -15,6 +15,7 @@ import { ComissoesIcon } from "./icons/ComissoesIcon";
 import logo from "../assets/logo.svg";
 import { cores } from "../theme";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import Box from "@mui/material/Box";
 
 const paginas = [
   { titulo: "Vendas", caminho: "/vendas", icone: <VendasIcon fontSize="small"/> },
@@ -95,7 +96,9 @@ export function Layout({ children }: LayoutProps) {
         </List>
       </Drawer>
 
-      <main style={{ padding: 24 }}>{children}</main>
+      <Box component="main" sx={{ padding: "24px", maxWidth: 1390, mx: "auto" , ml: 0, mr: 0}}>
+        {children}
+      </Box>
     </TituloContext.Provider>
   );
 }

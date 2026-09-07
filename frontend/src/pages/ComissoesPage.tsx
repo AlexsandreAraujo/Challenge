@@ -73,14 +73,20 @@ export function ComissoesPage() {
             value={dataInicio}
             onChange={setDataInicio}
             format="DD/MM/YYYY"
-            slotProps={{ openPickerButton: { color: "primary" } }}
+            slotProps={{
+              textField: { size: "small" },
+              openPickerButton: { color: "primary" },
+            }}
           />
           <DatePicker
             label="Período de Fim"
             value={dataFim}
             onChange={setDataFim}
             format="DD/MM/YYYY"
-            slotProps={{ openPickerButton: { color: "primary" } }}
+            slotProps={{
+              textField: { size: "small" },
+              openPickerButton: { color: "primary" },
+            }}
           />
           <IconButton
             onClick={buscar}

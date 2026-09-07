@@ -169,8 +169,11 @@ export function VendasPage() {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => setVendaParaExcluir(venda.id)}
-                        sx={{ "&:hover": { backgroundColor: "#EEC5C4" } }}
+                        onClick={(e) => {
+                          e.currentTarget.blur();
+                          setVendaParaExcluir(venda.id);
+                        }}
+                        sx={{ "&:hover": { backgroundColor: cores.hoverExcluir } }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>

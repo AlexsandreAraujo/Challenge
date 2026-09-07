@@ -137,7 +137,7 @@ export function VendaFormPage() {
   };
 
   return (
-    <Box sx={{ px: "24px" }}>
+    <>
       <Titulo texto={editando ? `Alterar Venda - Nº ${numeroCarregado}` : "Nova Venda"} />
       {erro && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -178,7 +178,7 @@ export function VendaFormPage() {
                 sx={{ width: 145 }}
               />
             </Box>
-            <Button variant="contained" onClick={adicionarItem} sx={{ height: 58 }}>
+            <Button variant="contained" onClick={adicionarItem} sx={{ height: 40 }}>
               Adicionar
             </Button>
           </Box>
@@ -283,6 +283,6 @@ export function VendaFormPage() {
           </Box>
         </Box>
       </Box>
-    </Box>
+    </>
   );
 }
