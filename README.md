@@ -1,0 +1,284 @@
+# Spassu - Sistema de Vendas e Comissões
+
+Sistema para uma papelaria registrar vendas e calcular a comissão de vendedores,
+com base nas vendas de um período e nos percentuais de comissão cadastrados nos
+produtos — respeitando limites mínimos/máximos configuráveis por dia da semana.
+Desenvolvido como desafio técnico para a **Spassu**.
+
+---
+
+## Sumário
+
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Arquitetura](#arquitetura)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Pré-requisitos](#pré-requisitos)
+- [Como Executar](#como-executar)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
+- [Endpoints da API](#endpoints-da-api)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Testes](#testes)
+- [Fluxo de Cálculo de Comissão](#fluxo-de-cálculo-de-comissão)
+
+---
+
+## Sobre o Projeto
+
+O sistema permite cadastrar produtos, clientes e vendedores, registrar vendas
+(com múltiplos itens) e consultar, por período, o total de comissão a pagar a
+cada vendedor. A regra de negócio central: cada produto tem um percentual de
+comissão próprio (0-10%), mas alguns dias da semana podem ter uma faixa
+mínima/máxima configurável que limita esse percentual na hora do cálculo.
+
+---
+
+## Arquitetura
+
+O backend segue uma separação por **apps de domínio**, cada um com uma única
+responsabilidade, e isola a regra de negócio de comissão numa camada de
+**serviços** independente da API — testável sem precisar de HTTP nem admin.
+
+```
+backend/
+├── catalogo/    # Produto
+├── pessoas/     # Cliente, Vendedor (model abstrato compartilhado)
+├── vendas/      # Venda, ItemVenda
+└── comissoes/   # FaixaComissaoDia + services.py (regra de cálculo)
+```
+
+### Decisões de Design
+
+| Padrão | Aplicação |
+|--------|-----------|
+| **App por domínio** | `catalogo`, `pessoas`, `vendas`, `comissoes` — cada um com um único motivo pra mudar |
+| **Camada de serviço isolada** | `comissoes/services.py` calcula comissão em funções puras, sem depender do Django REST Framework — testável isoladamente |
+| **Model abstrato** | `Pessoa` (campos comuns) como base de `Cliente`/`Vendedor`, sem tabela própria nem herança multi-tabela |
+| **Serializer aninhado gravável** | `VendaSerializer` cria/atualiza a venda e seus itens numa única requisição (`create`/`update` sobrescritos) |
+| **Reaproveitamento de validação** | Validações do model (`validators=[...]`) são herdadas automaticamente por Admin e API — sem duplicar regra |
+| **Filtro customizado** | `VendaFilterSet` evita o comportamento de quebra-por-palavra do `SearchFilter` padrão do DRF, buscando a frase completa |
+| **Número de nota fiscal derivado** | `Venda.numero_nota_fiscal` é uma `@property` calculada a partir do ID, não um campo editável — evita duplicidade/gaps de numeração |
+
+---
+
+## Tecnologias
+
+### Backend
+- **[Python 3.14](https://www.python.org/)**
+- **[Django 6.1](https://www.djangoproject.com/)** — Framework web
+- **[Django REST Framework 3.18](https://www.django-rest-framework.org/)** — API REST
+- **[django-filter](https://django-filter.readthedocs.io/)** — Filtros/busca customizados
+- **[django-cors-headers](https://github.com/adamchainz/django-cors-headers)** — Libera chamadas do frontend
+- **[pytest](https://docs.pytest.org/) + pytest-django** — Testes
+- **[Ruff](https://docs.astral.sh/ruff/)** — Lint e formatação (PEP 8, PEP 257)
+
+### Frontend
+- **[React 19](https://react.dev/)** — Biblioteca de UI
+- **[TypeScript](https://www.typescriptlang.org/)** — Tipagem estática
+- **[Vite](https://vitejs.dev/)** — Build tool e dev server
+- **[Material UI](https://mui.com/) + MUI X Date Pickers** — Componentes visuais
+- **[React Router DOM 7](https://reactrouter.com/)** — Roteamento SPA
+- **[dayjs](https://day.js.org/)** — Manipulação de datas
+
+### Testes
+- **[Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react)** — Testes de componente no frontend
+
+---
+
+## Funcionalidades
+
+- **Admin** — cadastro de produtos, clientes e vendedores; configuração das
+  faixas de comissão mínima/máxima por dia da semana
+- **API REST** — CRUD completo de produtos, clientes, vendedores e vendas
+  (vendas incluem seus itens numa única requisição); busca, ordenação e
+  paginação na listagem de vendas
+- **Cálculo de comissão** — aplica o percentual do produto, respeitando o
+  limite configurado para o dia da semana da venda
+- **Relatório de comissões** — total de vendas e de comissão por vendedor,
+  filtrado por período, com total geral
+- **Frontend** — telas de Vendas e Comissões seguindo o protótipo Figma
+
+---
+
+## Pré-requisitos
+
+- **Python 3.14** (testado com 3.14.7)
+- **Node.js 26** (testado com v26.7.0)
+
+Não é necessário instalar Django/DRF/React manualmente — tudo é resolvido via
+`requirements.txt` e `package.json`.
+
+---
+
+## Como Executar
+
+### Backend
+
+```bash
+cd backend
+
+python -m venv .venv
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# Linux/Mac:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+# ou, para desenvolvimento (inclui ruff, pytest):
+pip install -r requirements-dev.txt
+
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+| Serviço | URL |
+|---------|-----|
+| API REST | http://127.0.0.1:8000/api/ |
+| Django Admin | http://127.0.0.1:8000/admin/ |
+
+### Frontend
+
+```bash
+cd frontend
+
+npm install
+cp .env.example .env
+npm run dev
+```
+
+| Serviço | URL |
+|---------|-----|
+| Aplicação | http://localhost:5173 |
+
+> O backend precisa estar rodando para o frontend conseguir buscar dados da API.
+
+---
+
+## Variáveis de Ambiente
+
+### Frontend (`.env`)
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `VITE_API_BASE_URL` | URL base da API do backend | `http://localhost:8000/api` |
+
+---
+
+## Endpoints da API
+
+### Produtos / Clientes / Vendedores
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/produtos/` `/api/clientes/` `/api/vendedores/` | Lista registros |
+| `POST` | `/api/produtos/` `/api/clientes/` `/api/vendedores/` | Cria um registro |
+| `GET` | `/api/produtos/{id}/` | Detalha um registro |
+| `PUT` | `/api/produtos/{id}/` | Atualiza um registro |
+| `DELETE` | `/api/produtos/{id}/` | Remove um registro |
+
+### Vendas
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/vendas/` | Lista vendas (paginado; aceita `?search=`, `?ordering=`, `?cliente=`, `?vendedor=`) |
+| `POST` | `/api/vendas/` | Cria uma venda com seus itens numa única chamada |
+| `GET` | `/api/vendas/{id}/` | Detalha uma venda |
+| `PUT` | `/api/vendas/{id}/` | Atualiza a venda e substitui seus itens |
+| `DELETE` | `/api/vendas/{id}/` | Remove a venda (itens em cascata) |
+
+### Comissões
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/comissoes/?data_inicio=YYYY-MM-DD&data_fim=YYYY-MM-DD` | Total de vendas e de comissão por vendedor no período |
+
+---
+
+## Estrutura do Projeto
+
+```
+Challenge/
+├── backend/
+│   ├── config/          # settings, urls
+│   ├── catalogo/         # Produto (models, admin, serializers, views, tests)
+│   ├── pessoas/          # Cliente, Vendedor
+│   ├── vendas/           # Venda, ItemVenda
+│   ├── comissoes/        # FaixaComissaoDia, services.py, endpoint de relatório
+│   ├── conftest.py        # Fixtures compartilhadas entre testes
+│   └── manage.py
+│
+└── frontend/
+    └── src/
+        ├── api/          # client.ts (chamadas HTTP), types.ts
+        ├── components/   # Layout (header, menu), ícones customizados
+        ├── pages/         # VendasPage, VendaFormPage, ComissoesPage
+        └── theme.ts       # Cores e tipografia customizadas
+```
+
+---
+
+## Testes
+
+### Backend
+
+```bash
+cd backend
+pytest -v
+```
+
+| Área | Casos testados |
+|------|-----------------|
+| **Produto (API)** | Listar, criar válido, criar inválido (comissão fora da faixa), atualizar, excluir |
+| **Cliente/Vendedor (API)** | Listar, criar válido |
+| **Venda (API)** | Criar com itens, quantidade inválida, atualizar substituindo itens, excluir em cascata, paginação, busca, ordenação |
+| **Serviço de comissão** | Percentual efetivo (sem faixa, acima do máximo, abaixo do mínimo, dentro da faixa), comissão por item, comissão por venda, comissão agrupada por vendedor/período, contagem de vendas por vendedor |
+| **Endpoint de comissões (API)** | Retorno correto por período, data inválida (400), parâmetros ausentes (400) |
+
+### Frontend
+
+```bash
+cd frontend
+npx vitest run
+```
+
+| Área | Casos testados |
+|------|-----------------|
+| **ComissoesPage** | Mensagem inicial antes de buscar, título do relatório |
+| **VendasPage** | Lista vendas retornadas pela API |
+| **VendaFormPage** | Botão "Finalizar" começa desabilitado até o formulário ser preenchido |
+
+---
+
+## Fluxo de Cálculo de Comissão
+
+```
+Venda criada, com um ou mais itens
+         │
+         ▼
+Para cada item: percentual de comissão do Produto
+         │
+         ▼
+Existe FaixaComissaoDia para o dia da semana da venda?
+    │               │
+   Não              Sim
+    │               │
+    ▼               ▼
+Usa o percentual   Limita o percentual entre
+do produto         a faixa mínima e máxima
+    │               │
+    └───────┬───────┘
+            ▼
+  Comissão do item = subtotal × percentual efetivo
+            │
+            ▼
+  Comissão da venda = soma das comissões dos itens
+            │
+            ▼
+  Comissão do vendedor no período = soma das comissões
+  de todas as suas vendas no intervalo de datas
+```
+
+---
+
+Desenvolvido por **Alexsandre Araujo** como desafio técnico para a **Spassu**.
