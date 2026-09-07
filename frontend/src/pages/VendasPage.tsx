@@ -27,6 +27,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import DialogContent from "@mui/material/DialogContent";
+import CloseIcon from "@mui/icons-material/Close";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -250,18 +253,50 @@ export function VendasPage() {
         open={Boolean(mensagemSucesso)}
         autoHideDuration={4000}
         onClose={() => setMensagemSucesso(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert severity="success" onClose={() => setMensagemSucesso(null)}>
           {mensagemSucesso}
         </Alert>
       </Snackbar>
-      <Dialog open={vendaParaExcluir !== null} onClose={() => setVendaParaExcluir(null)}>
-        <DialogTitle>Excluir esta venda?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setVendaParaExcluir(null)}>Cancelar</Button>
-          <Button onClick={confirmarExclusao} color="error" variant="contained">
-            Excluir
+      <Dialog
+        open={vendaParaExcluir !== null}
+        onClose={() => setVendaParaExcluir(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            color: "text.primary",
+          }}
+        >
+          Remover Venda
+          <IconButton size="small" onClick={() => setVendaParaExcluir(null)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <Divider sx={{ mx: 2 }} />
+        <DialogContent>
+          <Typography>Deseja remover esta venda?</Typography>
+        </DialogContent>
+        <Divider sx={{ mx: 2 }} />
+        <DialogActions sx={{ px: 2 }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setVendaParaExcluir(null)}
+            sx={{
+              borderWidth: 2,
+              "&:hover": { borderWidth: 2 },
+            }}
+          >
+            Não
+          </Button>
+          <Button variant="contained" color="primary" onClick={confirmarExclusao}>
+            Sim
           </Button>
         </DialogActions>
       </Dialog>
