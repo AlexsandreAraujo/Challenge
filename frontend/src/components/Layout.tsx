@@ -10,13 +10,14 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MenuIcon from "@mui/icons-material/Menu";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import PaidIcon from "@mui/icons-material/Paid";
+import { VendasIcon } from "./icons/VendasIcon";
+import { ComissoesIcon } from "./icons/ComissoesIcon";
 import logo from "../assets/logo.svg";
+import { cores } from "../theme";
 
 const paginas = [
-  { titulo: "Vendas", caminho: "/vendas", icone: <ReceiptLongIcon /> },
-  { titulo: "Comissões", caminho: "/comissoes", icone: <PaidIcon /> },
+  { titulo: "Vendas", caminho: "/vendas", icone: <VendasIcon /> },
+  { titulo: "Comissões", caminho: "/comissoes", icone: <ComissoesIcon /> },
 ];
 
 const TituloContext = createContext<(titulo: string) => void>(() => {});
@@ -56,7 +57,7 @@ export function Layout({ children }: LayoutProps) {
               position: "absolute",
               left: "50%",
               transform: "translateX(-50%)",
-              color: "primary.main",
+              color: "primary.light",
               fontWeight: "bold",
             }}
           >
@@ -65,7 +66,12 @@ export function Layout({ children }: LayoutProps) {
         </Toolbar>
       </AppBar>
 
-      <Drawer anchor="left" open={menuAberto} onClose={() => setMenuAberto(false)}>
+      <Drawer
+        anchor="left"
+        open={menuAberto}
+        onClose={() => setMenuAberto(false)}
+        slotProps={{ paper: { sx: { width: 240, bgcolor: cores.fundoMenu } } }}
+      >
         <List sx={{ width: 240 }}>
           {paginas.map((pagina) => (
             <ListItemButton
@@ -73,6 +79,10 @@ export function Layout({ children }: LayoutProps) {
               component={Link}
               to={pagina.caminho}
               onClick={() => setMenuAberto(false)}
+              sx={{
+                "& .MuiListItemIcon-root": { color: "primary.light" },
+                "& .MuiListItemText-primary": { color: "primary.light" },
+              }}
             >
               <ListItemIcon>{pagina.icone}</ListItemIcon>
               <ListItemText primary={pagina.titulo} />
