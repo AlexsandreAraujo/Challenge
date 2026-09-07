@@ -24,6 +24,7 @@ import {
 import type { Cliente, Produto, Vendedor, ItemVendaInput } from "../api/types";
 import { Titulo } from "../components/Layout";
 import dayjs, { type Dayjs } from "dayjs";
+import { cores } from "../theme";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -213,7 +214,7 @@ export function VendaFormPage() {
                         size="small" 
                         color="error" 
                         onClick={() => removerItem(index)} 
-                        sx={{ "&:hover": { backgroundColor: "#EEC5C4" } }}
+                        sx={{ "&:hover": { backgroundColor: cores.hoverExcluir } }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>

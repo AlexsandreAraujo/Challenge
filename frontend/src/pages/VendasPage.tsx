@@ -30,6 +30,7 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import DialogContent from "@mui/material/DialogContent";
 import CloseIcon from "@mui/icons-material/Close";
+import { cores } from "../theme";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -121,7 +122,7 @@ export function VendasPage() {
               "& .MuiTableCell-root": {
                 fontWeight: "bold",
                 borderBottom: 1,
-                borderColor: "#888888",
+                borderColor: cores.bordaTabela,
               },
             }}
 >
@@ -145,7 +146,7 @@ export function VendasPage() {
           <TableBody>
             {vendas.map((venda) => (
               <Fragment key={venda.id}>
-                <TableRow sx={{ "& .MuiTableCell-root": { borderBottom: 1, borderColor: "#888888" } }}>
+                <TableRow sx={{ "& .MuiTableCell-root": { borderBottom: 1, borderColor: cores.bordaTabela } }}>
                   <TableCell align="center">{venda.numero_nota_fiscal}</TableCell>
                   <TableCell>{venda.cliente_nome}</TableCell>
                   <TableCell>{venda.vendedor_nome}</TableCell>
@@ -206,27 +207,27 @@ export function VendasPage() {
                           <TableRow>
                             <TableCell
                               align="left"
-                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: `1px solid ${cores.bordaTabela} !important` }}
                             >
                               Total da Venda
                             </TableCell>
                             <TableCell
                               align="center"
-                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: `1px solid ${cores.bordaTabela} !important` }}
                             >
                               {venda.itens.reduce((soma, item) => soma + item.quantidade, 0)}
                             </TableCell>
-                            <TableCell sx={{ borderBottom: "1px solid #888888 !important" }} />
+                            <TableCell sx={{ borderBottom: `1px solid ${cores.bordaTabela} !important` }} />
                             <TableCell
                               align="center"
-                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: `1px solid ${cores.bordaTabela} !important` }}
                             >
                               {formatarMoeda(venda.valor_total)}
                             </TableCell>
-                            <TableCell sx={{ borderBottom: "1px solid #888888 !important" }} />
+                            <TableCell sx={{ borderBottom: `1px solid ${cores.bordaTabela} !important` }} />
                             <TableCell
                               align="center"
-                              sx={{ fontWeight: "bold", pt: 3, borderBottom: "1px solid #888888 !important" }}
+                              sx={{ fontWeight: "bold", pt: 3, borderBottom: `1px solid ${cores.bordaTabela} !important` }}
                             >
                               {formatarMoeda(
                                 venda.itens.reduce((soma, item) => soma + item.comissao, 0)
