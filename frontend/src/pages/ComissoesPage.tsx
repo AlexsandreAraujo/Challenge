@@ -11,13 +11,14 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import SearchIcon from "@mui/icons-material/Search";
+import { SearchIcon } from "../components/icons/SearchIcon";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { getComissoes } from "../api/client";
 import type { ComissaoVendedor } from "../api/types";
 import { Titulo } from "../components/Layout";
+import { cores } from "../theme";
 
 const formatarMoeda = (valor: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -63,21 +64,33 @@ export function ComissoesPage() {
           mb: 2,
         }}
       >
-        <Typography variant="h5">Relatório de Comissões</Typography>
+        <Typography variant="h5" color="primary" sx={{ fontWeight: "bold" }}>
+          Relatório de Comissões
+        </Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <DatePicker
             label="Período de Início"
             value={dataInicio}
             onChange={setDataInicio}
             format="DD/MM/YYYY"
+            slotProps={{ openPickerButton: { color: "primary" } }}
           />
           <DatePicker
             label="Período de Fim"
             value={dataFim}
             onChange={setDataFim}
             format="DD/MM/YYYY"
+            slotProps={{ openPickerButton: { color: "primary" } }}
           />
-          <IconButton onClick={buscar} color="primary">
+          <IconButton
+            onClick={buscar}
+            sx={{
+              bgcolor: "primary.main",
+              color: "white",
+              borderRadius: 1,
+              "&:hover": { bgcolor: "primary.light" },
+            }}
+          >
             <SearchIcon />
           </IconButton>
         </Box>
@@ -86,36 +99,65 @@ export function ComissoesPage() {
       {erro && <Typography color="error">{erro}</Typography>}
 
       {resultado === null && !erro && (
-        <Typography color="text.secondary" sx={{ textAlign: "center" }}>
-          Para visualizar o relatório, selecione um período nos campos acima.
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "calc(100vh - 250px)",
+          }}
+        >
+          <Typography color="text.secondary">
+            Para visualizar o relatório, selecione um período nos campos acima.
+          </Typography>
+        </Box>
       )}
-
       {resultado !== null && (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ boxShadow: "none", border: "none" }}>
           <Table>
-            <TableHead>
+            <TableHead
+              sx={{
+                "& .MuiTableCell-root": {
+                  fontWeight: "bold",
+                  borderBottom: 1,
+                  borderColor: cores.bordaTabela,
+                },
+              }}
+            >
               <TableRow>
                 <TableCell>Cód.</TableCell>
-                <TableCell>Vendedor</TableCell>
-                <TableCell>Total de Vendas</TableCell>
-                <TableCell>Total de Comissões</TableCell>
+                <TableCell align="left">Vendedor</TableCell>
+                <TableCell align="center">Total de Vendas</TableCell>
+                <TableCell align="center">Total de Comissões</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {resultado.map((item) => (
-                <TableRow key={item.vendedor.id}>
+                <TableRow
+                  key={item.vendedor.id}
+                  sx={{
+                    "& .MuiTableCell-root": { borderBottom: 1, borderColor: cores.bordaTabela },
+                  }}
+                >
                   <TableCell>{item.vendedor.codigo}</TableCell>
-                  <TableCell>{item.vendedor.nome}</TableCell>
-                  <TableCell>{item.total_vendas}</TableCell>
-                  <TableCell>{formatarMoeda(Number(item.total))}</TableCell>
+                  <TableCell align="left">{item.vendedor.nome}</TableCell>
+                  <TableCell align="center">{item.total_vendas}</TableCell>
+                  <TableCell align="center">{formatarMoeda(Number(item.total))}</TableCell>
                 </TableRow>
               ))}
               <TableRow>
-                <TableCell colSpan={3} sx={{ fontWeight: "bold" }}>
+                <TableCell
+                  colSpan={3}
+                  sx={{ fontWeight: "bold", borderBottom: 1, borderColor: cores.bordaTabela }}
+                >
                   Total de Comissões do Período
                 </TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>{formatarMoeda(totalGeral)}</TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ fontWeight: "bold", borderBottom: 1, borderColor: cores.bordaTabela }}
+                >
+                  {formatarMoeda(totalGeral)}
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
