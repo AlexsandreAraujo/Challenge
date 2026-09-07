@@ -24,5 +24,6 @@ export const theme = createTheme({
 export const cores = {
   bordaTabela: "#888888",
   hoverExcluir: "#EEC5C4",
-  fundoMenu: "#DADADA",
+  fundoMenu: "#F2F2F2",
+  fundoItemMenu: "#F8F8F8",
 };

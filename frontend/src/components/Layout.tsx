@@ -14,10 +14,11 @@ import { VendasIcon } from "./icons/VendasIcon";
 import { ComissoesIcon } from "./icons/ComissoesIcon";
 import logo from "../assets/logo.svg";
 import { cores } from "../theme";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const paginas = [
-  { titulo: "Vendas", caminho: "/vendas", icone: <VendasIcon /> },
-  { titulo: "Comissões", caminho: "/comissoes", icone: <ComissoesIcon /> },
+  { titulo: "Vendas", caminho: "/vendas", icone: <VendasIcon fontSize="small"/> },
+  { titulo: "Comissões", caminho: "/comissoes", icone: <ComissoesIcon fontSize="small"/> },
 ];
 
 const TituloContext = createContext<(titulo: string) => void>(() => {});
@@ -80,12 +81,15 @@ export function Layout({ children }: LayoutProps) {
               to={pagina.caminho}
               onClick={() => setMenuAberto(false)}
               sx={{
+                bgcolor: cores.fundoItemMenu,
+                mt: 1,
                 "& .MuiListItemIcon-root": { color: "primary.light" },
-                "& .MuiListItemText-primary": { color: "primary.light" },
+                "& .MuiListItemText-primary": { color: "primary.light", fontWeight: "bold" },
               }}
             >
               <ListItemIcon>{pagina.icone}</ListItemIcon>
               <ListItemText primary={pagina.titulo} />
+              <ChevronRightIcon sx={{ ml: "auto", color: "action.disabled" }} />
             </ListItemButton>
           ))}
         </List>
