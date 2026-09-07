@@ -1,0 +1,60 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SECRET_KEY: chave-de-teste-nao-usada-em-producao
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost
+      DATABASE_URL: sqlite:///db.sqlite3
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      CSRF_TRUSTED_ORIGINS: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest -v
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npx vitest run
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: https://desafio-alexsandre.duckdns.org/api
+
+  deploy:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/Challenge
+            git pull origin master
+            docker compose up -d --build
+            docker compose exec -T backend python manage.py migrate
