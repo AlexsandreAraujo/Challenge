@@ -1,5 +1,5 @@
 import { useState } from "react";
-import dayjs, { type Dayjs } from "dayjs";
+import { type Dayjs } from "dayjs";
 import "dayjs/locale/pt-br";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
