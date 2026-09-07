@@ -127,6 +127,11 @@ pip install -r requirements.txt
 # ou, para desenvolvimento (inclui ruff, pytest):
 pip install -r requirements-dev.txt
 
+# configurar variáveis de ambiente (SECRET_KEY, DEBUG, banco)
+cp .env.example .env
+# edite o .env e troque SECRET_KEY por uma chave gerada com:
+# python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -156,6 +161,15 @@ npm run dev
 ---
 
 ## Variáveis de Ambiente
+
+### Backend (`.env`)
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `SECRET_KEY` | Chave secreta do Django (gere a sua, não reutilize a do `.env.example`) | — |
+| `DEBUG` | Ativa modo de depuração (nunca `True` em produção) | `True` |
+| `ALLOWED_HOSTS` | Hosts permitidos, separados por vírgula | `localhost,127.0.0.1` |
+| `DATABASE_URL` | Connection string do banco (`sqlite:///...`, `postgres://...`) | `sqlite:///db.sqlite3` |
 
 ### Frontend (`.env`)
 
